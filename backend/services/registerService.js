@@ -1,9 +1,11 @@
 const bcrypt = require("bcryptjs");
+const {config} = require("../config/env");
 const User = require("../models/user");
 const PendingRegistration = require("../models/pendingRegistration");
+const RefreshToken = require("../models/refreshToken");
 const {createOtp, verifyOtp} = require("./otpService");
 const {sendOtpNotification} = require("./notificationService");
-const {generateAccessToken, generateRefreshToken} = require("../utils/jwt");
+const {generateAccessToken, generateRefreshToken, hashToken} = require("../utils/jwt");
 
 
 const registerService = async({name, email, phone, password}) => {
@@ -160,6 +162,18 @@ const verifyAccountOtp = async ({email, phone, otp}) => {
 
         const accessToken = generateAccessToken(payload);
         const refreshToken = generateRefreshToken(payload);
+
+        const hashedRefreshToken = hashToken(refreshToken);
+
+        await RefreshToken.create(
+            {
+                userId : user._id,
+                tokenHash : hashedRefreshToken,
+                expiresAt : new Date(
+                    Date.now + config.jwt.refreshExpiresIn
+                )
+            }
+        );
 
         return {
             user,

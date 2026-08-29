@@ -1,8 +1,10 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user");
+const RefreshToken = require("../models/refreshToken");
 const {createOtp, verifyOtp} = require("./otpService");
 const {sendOtpNotification} = require("./notificationService");
-const {generateAccessToken, generateRefreshToken} = require("../utils/jwt");
+const {generateAccessToken} = require("../utils/jwt");
+const {createRefreshToken} = require("./refreshTokenService");
 
 const requestLoginOtp = async ({email, phone}) => {
 
@@ -123,10 +125,13 @@ const loginService = async ({email, phone, password, otp}) => {
 
     const accessToken = generateAccessToken(payload);
 
-    const refreshToken = generateRefreshToken(payload);
+    const refreshToken = await createRefreshToken(
+        user._id,
+        user.role
+    );
 
     return {
-        message : "Login successfull",
+        message : "Login successful",
         data : {
             user,
             accessToken,
@@ -135,4 +140,26 @@ const loginService = async ({email, phone, password, otp}) => {
     };
 };
 
-module.exports = {requestLoginOtp, loginService};
+const logoutService = async (refreshToken) => {
+
+    if (refreshToken) {
+
+        const tokenHash = hashToken(refreshToken);
+
+        await RefreshToken.findOneAndUpdate(
+            {
+                tokenHash,
+                revokedAt: null
+            },
+            {
+                revokedAt: new Date()
+            }
+        );
+    }
+
+    return {
+        message: "Logout successful"
+    };
+};
+
+module.exports = {requestLoginOtp, loginService, logoutService};

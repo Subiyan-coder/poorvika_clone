@@ -1,7 +1,7 @@
 const {registerService, verifyAccountOtp} = require("../services/registerService");
-const {loginService, requestLoginOtp} = require("../services/loginService");
+const {loginService, requestLoginOtp, logoutService} = require("../services/loginService");
 const {logger} = require("../utils/logger");
-const {setAuthCookies} = require("../utils/cookie");
+const {setAuthCookies, clearAuthCookies} = require("../utils/cookie");
 
 const register = async (req, res, next) => {
     try {
@@ -90,4 +90,25 @@ const loginOtp = async (req, res, next) => {
     }
 };
 
-module.exports = {register, registrationOtp, login, loginOtp};
+const logout = async (req, res, next) => {
+
+    try {
+
+        const refreshToken = req.cookies.refreshToken;
+
+        const result = await logoutService(refreshToken);
+
+        clearAuthCookies(res);
+
+        return res.status(200).json({
+            success: true,
+            message: result.message
+        });
+
+    }
+    catch (err) {
+        next(err);
+    }
+};
+
+module.exports = {register, registrationOtp, login, loginOtp, logout};
