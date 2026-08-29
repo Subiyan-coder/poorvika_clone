@@ -2,7 +2,7 @@ const {nameRule, emailRule, phoneRule, passwordRule, otpRule} = require("./globa
 
 const { body } = require("express-validator");
 
-const registerRule = [
+const registerRules = [
     nameRule,
     emailRule,
     phoneRule,
@@ -17,7 +17,7 @@ const registerRule = [
     })
 ];
 
-const loginRule = [
+const loginRules = [
     emailRule,
     phoneRule,
     passwordRule,
@@ -36,7 +36,21 @@ const loginRule = [
     })
 ];
 
+const loginOtpRequestRules = [
+    emailRule,
+    phoneRule,
+
+    body().custom((value) => {
+        if (!value.email && !value.phone) {
+            throw new Error("Either email or phone number is required");
+        }
+
+        return true;
+    })
+];
+
 module.exports = {
-    registerRule,
-    loginRule
+    registerRules,
+    loginRules,
+    loginOtpRequestRules
 };

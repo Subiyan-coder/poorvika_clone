@@ -1,13 +1,13 @@
-const {StatusCodes} = require("http-status-codes");
-const authSerivice = require("../services/authServices");
+const {registerService, verifyAccountOtp} = require("../services/registerService");
+const {loginService, requestLoginOtp} = require("../services/loginService");
 const {logger} = require("../utils/logger");
 const {setAuthCookies} = require("../utils/cookie");
 
 const register = async (req, res, next) => {
     try {
-        const result = await authSerivice.register(req.body);
+        const result = await registerService(req.body);
 
-        return res.status(StatusCodes.OK).json(
+        return res.status(201).json(
             {
                 success : true,
                 message : result.message,
@@ -21,9 +21,9 @@ const register = async (req, res, next) => {
     }
 };
 
-const verifyRegistrationOtp = async (req, res, next) => {
+const registrationOtp = async (req, res, next) => {
     try{
-        const result = await authSerivice.verifyRegistrationOtp(req.body);
+        const result = await verifyAccountOtp(req.body);
 
         setAuthCookies(
             res,
@@ -31,7 +31,7 @@ const verifyRegistrationOtp = async (req, res, next) => {
             result.refreshToken
         )
 
-        return res.status(StatusCodes.CREATED).json(
+        return res.status(201).json(
             {
                 success : true,
                 message : "Registration completed successfully",
@@ -48,6 +48,46 @@ const verifyRegistrationOtp = async (req, res, next) => {
     catch(err){
         next(err);
     }
-}
+};
 
-module.exports = {register, verifyRegistrationOtp};
+const login = async (req, res, next) => {
+    try {
+        const result = await loginService(req.body);
+
+        setAuthCookies(
+            res,
+            result.data.accessToken,
+            result.data.refreshToken
+        );
+
+        return res.status(200).json(
+            {
+                success : true,
+                message : result.message,
+                data : {
+                    user : result.data.user
+                }
+            }
+        );
+    }
+    catch(err){
+        next(err);
+    }
+};
+
+const loginOtp = async (req, res, next) => {
+    try {
+        const result = await requestLoginOtp(req.body);
+
+        return res.status(200).json({
+            success: true,
+            message: result.message,
+            data: result.data
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+
+module.exports = {register, registrationOtp, login, loginOtp};

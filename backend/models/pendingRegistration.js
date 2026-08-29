@@ -23,12 +23,6 @@ const pendingRegistrationSchema = new mongoose.Schema(
             type : String
         },
 
-        otpId : {
-            type : mongoose.Schema.Types.ObjectId,
-            ref : "OTP",
-            required : true
-        },
-
         expiresAt : {
             type : Date,
             required : true

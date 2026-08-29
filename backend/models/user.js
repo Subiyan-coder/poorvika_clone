@@ -10,14 +10,12 @@ const userSchema = new mongoose.Schema(
 
         email : {
             type : String,
-            unique : true,
             lowercase : true,
             trim : true
         },
 
         phone : {
             type : String,
-            unique : true,
             trim : true
         },
 
@@ -47,6 +45,25 @@ const userSchema = new mongoose.Schema(
     }
 );
 
+userSchema.index(
+    { email: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            email: { $exists: true, $ne: null }
+        }
+    }
+);
+
+userSchema.index(
+    { phone: 1 },
+    {
+        unique: true,
+        partialFilterExpression: {
+            phone: { $exists: true, $ne: null }
+        }
+    }
+);
 
 const User = mongoose.model("User", userSchema);
 

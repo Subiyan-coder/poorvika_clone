@@ -1,15 +1,13 @@
 const bcrypt = require("bcryptjs");
 const User = require("../models/user");
 const PendingRegistration = require("../models/pendingRegistration");
-const OTP = require("../models/otp");
 const {createOtp, verifyOtp} = require("./otpService");
 const {sendOtpNotification} = require("./notificationService");
 const {generateAccessToken, generateRefreshToken} = require("../utils/jwt");
 
 
-const register = async({name, email, phone, password}) => {
-
-    const existingUser = await User.findOne(
+const registerService = async({name, email, phone, password}) => {
+const existingUser = await User.findOne(
         {
             $or : [
                 ...(email ? [{email}] : []),
@@ -37,6 +35,23 @@ const register = async({name, email, phone, password}) => {
         ? await bcrypt.hash(password, 10) 
         : null;
 
+    if (password) {
+        const user = await User.create({
+            name,
+            email,
+            phone,
+            password: passwordHash,
+            isVerified: true
+        });
+
+        return {
+            message: "Account created successfully",
+            data: {
+                user
+            }
+        };
+    }
+
     const identifier = email || phone;
     const type = email ? "EMAIL" : "PHONE";
 
@@ -58,7 +73,6 @@ const register = async({name, email, phone, password}) => {
             email,
             phone,
             passwordHash,
-            otpId : otpRecord._id,
             expiresAt
         }
     );
@@ -76,22 +90,52 @@ const register = async({name, email, phone, password}) => {
         data : {
             identifier,
             type,
+            purpose : otpRecord.purpose,
             expiresAt
         }
     };
 };
 
-const verifyRegistrationOtp = async ({otpId, otp}) => {
-    try {
-        const pendingRegistration = await PendingRegistration.findOne({otpId});
+const verifyAccountOtp = async ({email, phone, otp}) => {
+
+    const existingUser = await User.findOne(
+        {
+            $or : [
+                ...(email ? [{email}] : []),
+                ...(phone ? [{phone}]: [])
+            ]
+        }
+    );
+
+    if(existingUser) {
+        const error = new Error("An account already exists with this Email or Phone number");
+        error.statusCode = 409;
+        throw error;
+    }
+
+        const identifier = email || phone;
+        const type = email ? "EMAIL" : "PHONE";
+
+        const pendingRegistration = await PendingRegistration.findOne(
+            email
+            ? {email}
+            : {phone}
+        );
 
         if(!pendingRegistration){
-            const error = new Error("Registration request not found or expired");
+            const error = new Error("Registration request not found");
             error.statusCode = 400;
             throw error
         }
 
-        const otpRecord = await verifyOtp({otpId, otp});
+        await verifyOtp(
+            {
+                identifier,
+                type,
+                otp,
+                purpose : "REGISTER"
+            }
+        );
 
         const user = await User.create(
             {
@@ -109,12 +153,6 @@ const verifyRegistrationOtp = async ({otpId, otp}) => {
             }
         );
 
-        await OTP.deleteOne(
-            {
-                _id : otpRecord._id
-            }
-        )
-
         const payload = {
             userId : user._id,
             userRole : user.role
@@ -128,10 +166,6 @@ const verifyRegistrationOtp = async ({otpId, otp}) => {
             accessToken,
             refreshToken
         };
-    }
-    catch(err){
-        throw err;
-    }
 }
 
-module.exports = {register, verifyRegistrationOtp};
+module.exports = {registerService, verifyAccountOtp};
