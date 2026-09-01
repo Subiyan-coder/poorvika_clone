@@ -1,4 +1,4 @@
-const bcrypt = require("bcryptjs");
+const {verifyPassword} = require("./passwordService");
 const User = require("../models/user");
 const RefreshToken = require("../models/refreshToken");
 const {createOtp, verifyOtp} = require("./otpService");
@@ -15,7 +15,7 @@ const requestLoginOtp = async ({email, phone}) => {
         email 
         ? {email} 
         : {phone}
-    );
+    ).select("+password");
 
     if(!user){
         const error = new Error("User not found");
@@ -87,7 +87,7 @@ const loginService = async ({email, phone, password, otp}) => {
             throw error;
         }
 
-        const isPasswordValid = await bcrypt.compare(
+        const isPasswordValid = await verifyPassword(
             password,
             user.password
         )

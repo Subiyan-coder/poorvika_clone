@@ -1,4 +1,4 @@
-const bcrypt = require("bcryptjs");
+const {hashPassword} = require("./passwordService");
 const {config} = require("../config/env");
 const User = require("../models/user");
 const PendingRegistration = require("../models/pendingRegistration");
@@ -33,9 +33,9 @@ const existingUser = await User.findOne(
         }
     );
 
-    const passwordHash = password 
-        ? await bcrypt.hash(password, 10) 
-        : null;
+    const passwordHash = password
+            ? await hashPassword(password)
+            : null;
 
     if (password) {
         const user = await User.create({

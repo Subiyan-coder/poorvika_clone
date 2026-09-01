@@ -21,6 +21,16 @@ const config = {
 
     fast2sms : {
         apiKey : process.env.FAST2SMS_API_KEY
+    },
+
+    bcrypt : {
+        saltRounds : process.env.SALT_ROUNDS
+    },
+
+    cloudinary : {
+        cloudName : process.env.CLOUDINAY_CLOUD_NAME,
+        apiKey : process.env.CLOUDINAY_AP1_KEY,
+        apiSecret : process.env.CLOUDINAY_AP1_SECRET
     }
 };
 

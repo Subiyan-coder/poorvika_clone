@@ -16,7 +16,13 @@ const otpAttemptSchema = new mongoose.Schema(
 
         purpose : {
             type : String,
-            enum : ["REGISTER", "LOGIN"],
+            enum : [
+                "REGISTER",
+                "LOGIN",
+                "RESET_PASSWORD",
+                "CHANGE_EMAIL",
+                "CHANGE_PHONE"
+            ],
             required : true
         },
 

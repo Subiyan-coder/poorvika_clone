@@ -20,13 +20,26 @@ const userSchema = new mongoose.Schema(
         },
 
         password : {
-            type : String
+            type : String,
+            select : false
         },
 
         role : {
             type : String,
             enum : ["ADMIN", "CUSTOMER"],
             default : "CUSTOMER"
+        },
+
+        profileImage : {
+            url : {
+                type : String,
+                default : null
+            },
+
+            publicId : {
+                type : String,
+                default : null
+            }
         },
 
         isVerified : {
