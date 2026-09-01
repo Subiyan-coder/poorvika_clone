@@ -6,15 +6,36 @@ const {register, registrationOtp, login, loginOtp, logout} = require("../control
 
 const router = express.Router();
 
-router.post('/register', registerRules, validate, register);
+router.post(
+    "/register",
+    registerRules,
+    validate,
+    register
+);
 
-router.post('/verify-account-otp', registrationOtp);
+router.post(
+    "/verify-account-otp",
+    registrationOtp
+);
 
-router.post('/login-request-otp', loginOtpRequestRules, validate, loginOtp);
+router.post(
+    "/login-request-otp",
+    loginOtpRequestRules,
+    validate,
+    loginOtp
+);
 
-router.post('/login', loginRules, validate, login);
+router.post(
+    "/login",
+    loginRules,
+    validate,
+    login
+);
 
-router.post('/logout', logout);
+router.post(
+    "/logout",
+    logout
+);
 
 
 module.exports = router;

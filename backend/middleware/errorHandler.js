@@ -1,8 +1,7 @@
-const {StatusCodes}  = require("http-status-codes");
 const {logger} = require("../utils/logger");
 
 const errorHandler = (err, req, res, next) => {
-    const statusCode = err.StatusCodes || StatusCodes.INTERNAL_SERVER_ERROR;
+    const statusCode = err.StatusCode || 500;
 
     logger.error(
         {

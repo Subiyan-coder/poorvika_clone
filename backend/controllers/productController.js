@@ -1,0 +1,188 @@
+const {
+    createProduct,
+    getAllProducts,
+    getOneProduct,
+    getAllProductsForAdmin,
+    updateProduct,
+    updateProductStatus,
+    deleteProduct
+} = require("../services/productService");
+
+const { logger } = require("../utils/logger");
+
+
+const create = async (req, res, next) => {
+
+    try {
+
+        const product = await createProduct(req.body);
+
+        return res.status(201).json({
+            success: true,
+            message: "Product created successfully",
+            data: product
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product creation failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+
+const getAll = async (req, res, next) => {
+
+    try {
+
+        const result = await getAllProducts({
+            categoryId: req.query.categoryId,
+            page: Number(req.query.page) || 1,
+            limit: Number(req.query.limit) || 20
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: result.products,
+            pagination: result.pagination
+        });
+
+    }
+    catch (err) {
+
+        next(err);
+    }
+};
+
+
+const getOne = async (req, res, next) => {
+
+    try {
+
+        const product = await getOneProduct(
+            req.params.productId
+        );
+
+        return res.status(200).json({
+            success: true,
+            data: product
+        });
+
+    }
+    catch (err) {
+
+        next(err);
+    }
+};
+
+
+const getAllForAdmin = async (req, res, next) => {
+
+    try {
+
+        const products = await getAllProductsForAdmin();
+
+        return res.status(200).json({
+            success: true,
+            data: products
+        });
+
+    }
+    catch (err) {
+
+        next(err);
+    }
+};
+
+
+const update = async (req, res, next) => {
+
+    try {
+
+        const product = await updateProduct(
+            req.params.productId,
+            req.body
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Product updated successfully",
+            data: product
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product update failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+
+const updateStatus = async (req, res, next) => {
+
+    try {
+
+        const product = await updateProductStatus(
+            req.params.productId,
+            req.body.isActive
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Product status updated successfully",
+            data: product
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product status update failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+const remove = async (req, res, next) => {
+
+    try {
+
+        const result = await deleteProduct(
+            req.params.productId
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: result.message
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product deletion failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+
+module.exports = {
+    create,
+    getAll,
+    getOne,
+    getAllForAdmin,
+    update,
+    updateStatus,
+    remove
+};

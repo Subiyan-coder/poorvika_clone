@@ -6,26 +6,26 @@ const {
     updateCustomerProfileImage
 } = require("../controllers/customerProfileController");
 
-const {validate} = require("../middleware/validate");
+const { validate } = require("../middleware/validate");
 
-const {updateProfileRules} = require("../middleware/validationRules/customerProfileRules");
+const { updateProfileRules } = require("../middleware/validationRules/customerProfileRules");
 
-const {authenticate, authorize} = require("../middleware/authMiddleware");
+const { authenticate, authorize } = require("../middleware/authMiddleware");
 
-const {upload} = require("../middleware/upload")
+const { upload } = require("../middleware/upload")
 
 const router = express.Router();
 
 
 router.get(
-    '/profile',
+    "/profile",
     authenticate,
     authorize("CUSTOMER"),
     getCustomerProfile
 );
 
 router.patch(
-    '/profile',
+    "/profile",
     authenticate,
     authorize("CUSTOMER"),
     updateProfileRules,
@@ -34,7 +34,7 @@ router.patch(
 );
 
 router.patch(
-    '/profile/picture',
+    "/profile/picture",
     authenticate,
     authorize("CUSTOMER"),
     upload.single("profileImage"),
