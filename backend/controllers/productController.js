@@ -5,7 +5,10 @@ const {
     getAllProductsForAdmin,
     updateProduct,
     updateProductStatus,
-    deleteProduct
+    deleteProduct,
+    addProductImages,
+    updateProductImage,
+    deleteProductImage
 } = require("../services/productService");
 
 const { logger } = require("../utils/logger");
@@ -177,6 +180,88 @@ const remove = async (req, res, next) => {
 };
 
 
+const addImages = async (req, res, next) => {
+
+    try {
+
+        const product = await addProductImages(
+            req.params.productId,
+            req.files
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Product images added successfully",
+            data: product
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product image upload failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+
+const updateImage = async (req, res, next) => {
+
+    try {
+
+        const product = await updateProductImage(
+            req.params.productId,
+            req.params.imageId,
+            req.file
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Product image updated successfully",
+            data: product
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product image update failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+
+const removeImage = async (req, res, next) => {
+
+    try {
+
+        const product = await deleteProductImage(
+            req.params.productId,
+            req.params.imageId
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Product image deleted successfully",
+            data: product
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product image deletion failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+
 module.exports = {
     create,
     getAll,
@@ -184,5 +269,8 @@ module.exports = {
     getAllForAdmin,
     update,
     updateStatus,
-    remove
+    remove,
+    addImages,
+    updateImage,
+    removeImage
 };

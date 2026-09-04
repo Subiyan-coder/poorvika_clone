@@ -7,7 +7,10 @@ const {
     getAllForAdmin,
     update,
     updateStatus,
-    remove
+    remove,
+    addImages,
+    updateImage,
+    removeImage
 } = require("../controllers/productController");
 
 const {
@@ -23,10 +26,13 @@ const {
     authorize
 } = require("../middleware/authMiddleware");
 
+const { upload } = require("../middleware/upload");
+
 const router = express.Router();
 
 
 // Customer
+
 router.get(
     "/",
     getAll
@@ -39,6 +45,7 @@ router.get(
 
 
 // Admin
+
 router.get(
     "/admin/all",
     authenticate,
@@ -79,5 +86,32 @@ router.delete(
     authorize("ADMIN"),
     remove
 );
+
+
+// Product Images
+
+router.post(
+    "/:productId/images",
+    authenticate,
+    authorize("ADMIN"),
+    upload.array("images", 10),
+    addImages
+);
+
+router.patch(
+    "/:productId/images/:imageId",
+    authenticate,
+    authorize("ADMIN"),
+    upload.single("image"),
+    updateImage
+);
+
+router.delete(
+    "/:productId/images/:imageId",
+    authenticate,
+    authorize("ADMIN"),
+    removeImage
+);
+
 
 module.exports = router;

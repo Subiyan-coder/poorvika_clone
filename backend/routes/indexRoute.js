@@ -2,16 +2,26 @@ const express = require("express");
 
 const authRoutes = require("./authRoute");
 
-const customerProfileRoute = require("./customerProfileRoute");
+const profileRoute = require("./profileRoute");
 const addressRoute = require("./addressRoute");
 const passwordRoute = require("./passwordRoute");
 const accountRoute = require("./accountRoute");
 
 const categoryRoute = require("./categoryRoute");
-
 const productRoute = require("./productRoute");
-
 const ProductVariantRoute = require("./productVariantRoute");
+
+const inventoryRoute = require("./inventoryRoute");
+
+const orderRoute = require("./orderRoute");
+const couponRoute = require("./couponRoute");
+const shipmentRoute = require("./shipmentRoute");
+const returnRoute =  require("./returnRoute");
+const paymentRoute = require("./paymentRoute");
+
+const reviewRoute = require("./reviewRoute");
+
+const supportRequestRoute = require("./supportRequestRoute");
 
 
 const router = express.Router();
@@ -28,7 +38,7 @@ router.use(
 
 router.use(
     "/customer",
-    customerProfileRoute
+    profileRoute
 );
 
 router.use(
@@ -63,6 +73,56 @@ router.use(
 router.use(
     "/product-variants",
     ProductVariantRoute
+);
+
+// inventory routes 
+
+router.use(
+    "/inventory",
+    inventoryRoute
+);
+
+// order routes
+
+router.use(
+    "/order",
+    orderRoute
+);
+
+router.use(
+    "/coupons",
+    couponRoute
+);
+
+
+router.use(
+    "/shipments",
+    shipmentRoute
+);
+
+router.use(
+    "/returns",
+    returnRoute
+);
+
+
+router.use(
+    "/payments",
+    paymentRoute
+);
+
+// review route
+
+router.use(
+    "/review",
+    reviewRoute
+);
+
+// support route
+
+router.use(
+    "/support",
+    supportRequestRoute
 );
 
 module.exports = router;

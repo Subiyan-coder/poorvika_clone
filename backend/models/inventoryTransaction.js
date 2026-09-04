@@ -14,7 +14,8 @@ const inventoryTransactionSchema = new mongoose.Schema(
                 "PURCHASE",
                 "SALE",
                 "RETURN",
-                "ADJUSTMENT",
+                "ADD",
+                "REMOVE",
                 "DAMAGE",
                 "RESERVATION",
                 "RELEASE"

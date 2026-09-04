@@ -7,7 +7,10 @@ const {
     getAllForAdmin,
     update,
     updateStatus,
-    remove
+    remove,
+    addImages,
+    updateImage,
+    removeImage
 } = require("../controllers/productVariantController");
 
 const {
@@ -17,6 +20,10 @@ const {
 } = require("../middleware/validationRules/productVariantRules");
 
 const { validate } = require("../middleware/validate");
+
+const { upload } = require("../middleware/upload");
+
+
 
 const {
     authenticate,
@@ -78,6 +85,31 @@ router.delete(
     authenticate,
     authorize("ADMIN"),
     remove
+);
+
+// image routes
+
+router.post(
+    "/:variantId/images",
+    authenticate,
+    authorize("ADMIN"),
+    upload.array("images", 10),
+    addImages
+);
+
+router.patch(
+    "/:variantId/images/:imageId",
+    authenticate,
+    authorize("ADMIN"),
+    upload.single("image"),
+    updateImage
+);
+
+router.delete(
+    "/:variantId/images/:imageId",
+    authenticate,
+    authorize("ADMIN"),
+    removeImage
 );
 
 

@@ -5,7 +5,8 @@ const shipmentSchema = mongoose.Schema(
         orderId : {
             type : mongoose.Schema.Types.ObjectId,
             ref : "Order",
-            required : true
+            required : true,
+            unique : true
         },
 
         status : {

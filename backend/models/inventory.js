@@ -12,6 +12,10 @@ const inventorySchema = new mongoose.Schema(
         quantity : {
             type : Number,
             min : 0,
+            validate : {
+                validator : Number.isInteger,
+                message : "Quantity must be in integer"
+            },
             default : 0
         },
         
@@ -24,7 +28,7 @@ const inventorySchema = new mongoose.Schema(
         lowStockThreshold : {
             type : Number,
             min : 0,
-            default : 5
+            default : 10
         },
 
         isAvailable : {

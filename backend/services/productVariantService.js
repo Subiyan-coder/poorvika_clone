@@ -249,6 +249,142 @@ const deleteProductVariant = async (variantId) => {
 };
 
 
+const addVariantImages = async (variantId, files) => {
+
+    if (!files || files.length === 0) {
+        const error = new Error("At least one image is required");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const variant = await ProductVariant.findById(variantId);
+
+    if (!variant) {
+        const error = new Error("Product variant not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const uploadedImages = [];
+
+    try {
+
+        for (const file of files) {
+
+            const image = await uploadImage(
+                file.buffer,
+                "poorvika/product-variants"
+            );
+
+            uploadedImages.push(image);
+        }
+
+        variant.images.push(...uploadedImages);
+
+        await variant.save();
+
+        return variant;
+
+    }
+    catch (error) {
+
+        for (const image of uploadedImages) {
+            await deleteImage(image.publicId);
+        }
+
+        throw error;
+    }
+};
+
+
+const updateVariantImage = async (
+    variantId,
+    imageId,
+    file
+) => {
+
+    if (!file) {
+        const error = new Error("Image is required");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const variant = await ProductVariant.findById(variantId);
+
+    if (!variant) {
+        const error = new Error("Product variant not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const image = variant.images.id(imageId);
+
+    if (!image) {
+        const error = new Error("Product variant image not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const oldPublicId = image.publicId;
+
+    const uploadedImage = await uploadImage(
+        file.buffer,
+        "poorvika/product-variants"
+    );
+
+    image.url = uploadedImage.url;
+    image.publicId = uploadedImage.publicId;
+
+    try {
+
+        await variant.save();
+
+    }
+    catch (error) {
+
+        await deleteImage(uploadedImage.publicId);
+
+        throw error;
+    }
+
+    await deleteImage(oldPublicId);
+
+    return variant;
+};
+
+
+const deleteVariantImage = async (
+    variantId,
+    imageId
+) => {
+
+    const variant = await ProductVariant.findById(variantId);
+
+    if (!variant) {
+        const error = new Error("Product variant not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const image = variant.images.id(imageId);
+
+    if (!image) {
+        const error = new Error("Product variant image not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    await deleteImage(image.publicId);
+
+    variant.images.pull(imageId);
+
+    await variant.save();
+
+    return variant;
+};
+
+
+
 module.exports = {
     createProductVariant,
     getAllProductVariants,
@@ -256,5 +392,8 @@ module.exports = {
     getAllProductVariantsForAdmin,
     updateProductVariant,
     updateProductVariantStatus,
-    deleteProductVariant
+    deleteProductVariant,
+    addVariantImages,
+    updateVariantImage,
+    deleteVariantImage
 };

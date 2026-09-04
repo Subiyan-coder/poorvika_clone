@@ -1,6 +1,7 @@
 const Product = require("../models/product");
 const Category = require("../models/category");
 const ProductVariant = require("../models/productVariant");
+const { uploadImage, deleteImage } = require("./cloudinaryService");
 
 const createProduct = async (
     {
@@ -271,6 +272,136 @@ const deleteProduct = async (productId) => {
     };
 };
 
+
+const addProductImages = async (productId, files) => {
+
+    if (!files || files.length === 0) {
+        const error = new Error("At least one image is required");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+        const error = new Error("Product not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const uploadedImages = [];
+
+    try {
+
+        for (const file of files) {
+
+            const image = await uploadImage(
+                file.buffer,
+                "poorvika/products"
+            );
+
+            uploadedImages.push(image);
+        }
+
+        product.images.push(...uploadedImages);
+
+        await product.save();
+
+        return product;
+
+    } catch (error) {
+
+        for (const image of uploadedImages) {
+            await deleteImage(image.publicId);
+        }
+
+        throw error;
+    }
+};
+
+
+const deleteProductImage = async (productId, imageId) => {
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+        const error = new Error("Product not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const image = product.images.id(imageId);
+
+    if (!image) {
+        const error = new Error("Product image not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    await deleteImage(image.publicId);
+
+    product.images.pull(imageId);
+
+    await product.save();
+
+    return product;
+};
+
+
+const updateProductImage = async (
+    productId,
+    imageId,
+    file
+) => {
+
+    if (!file) {
+        const error = new Error("Image is required");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+        const error = new Error("Product not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const image = product.images.id(imageId);
+
+    if (!image) {
+        const error = new Error("Product image not found");
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const oldPublicId = image.publicId;
+
+    const uploadedImage = await uploadImage(
+        file.buffer,
+        "poorvika/products"
+    );
+
+    image.url = uploadedImage.url;
+    image.publicId = uploadedImage.publicId;
+
+    try {
+
+        await product.save();
+
+    } catch (error) {
+
+        await deleteImage(uploadedImage.publicId);
+
+        throw error;
+    }
+
+    await deleteImage(oldPublicId);
+
+    return product;
+};
+
 module.exports = {
     createProduct,
     getAllProducts,
@@ -278,5 +409,8 @@ module.exports = {
     getAllProductsForAdmin,
     updateProduct,
     updateProductStatus,
-    deleteProduct
+    deleteProduct,
+    addProductImages,
+    deleteProductImage,
+    updateProductImage
 };

@@ -54,6 +54,18 @@ const paymentSchema = new mongoose.Schema(
         paidAt : {
             type : Date,
             default : null
+        },
+
+        expiresAt: {
+            type: Date,
+            default: null
+        },
+
+        failureReason: {
+            type: String,
+            trim: true,
+            default: null,
+            maxlength: 500
         }
     },
 

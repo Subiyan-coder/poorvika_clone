@@ -146,9 +146,7 @@ const setDefaultAddress = async (userId, addressId) => {
         }
     );
 
-    if (data.isDefault !== undefined) {
-        address.isDefault = data.isDefault;
-    }
+    address.isDefault = true;
     await address.save();
 
     return address;

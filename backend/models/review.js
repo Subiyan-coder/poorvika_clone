@@ -27,6 +27,22 @@ const reviewSchema = new mongoose.Schema(
             max : 5
         },
 
+        images: [
+            {
+                url: {
+                    type: String,
+                    required: true,
+                    trim: true
+                },
+
+                publicId: {
+                    type: String,
+                    required: true,
+                    trim: true
+                }
+            }
+        ],
+
         comment : {
             type : String,
             trim : true,

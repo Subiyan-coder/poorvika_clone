@@ -5,7 +5,10 @@ const {
     getAllProductVariantsForAdmin,
     updateProductVariant,
     updateProductVariantStatus,
-    deleteProductVariant
+    deleteProductVariant,
+    addVariantImages,
+    updateVariantImage,
+    deleteVariantImage
 } = require("../services/productVariantService");
 
 const { logger } = require("../utils/logger");
@@ -182,6 +185,89 @@ const remove = async (req, res, next) => {
 };
 
 
+const addImages = async (req, res, next) => {
+
+    try {
+
+        const variant = await addVariantImages(
+            req.params.variantId,
+            req.files
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Product variant images added successfully",
+            data: variant
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product variant image upload failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+
+const updateImage = async (req, res, next) => {
+
+    try {
+
+        const variant = await updateVariantImage(
+            req.params.variantId,
+            req.params.imageId,
+            req.file
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Product variant image updated successfully",
+            data: variant
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product variant image update failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+
+const removeImage = async (req, res, next) => {
+
+    try {
+
+        const variant = await deleteVariantImage(
+            req.params.variantId,
+            req.params.imageId
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Product variant image deleted successfully",
+            data: variant
+        });
+
+    }
+    catch (err) {
+
+        logger.error(
+            `Product variant image deletion failed: ${err.message}`
+        );
+
+        next(err);
+    }
+};
+
+
+
 module.exports = {
     create,
     getAll,
@@ -189,5 +275,8 @@ module.exports = {
     getAllForAdmin,
     update,
     updateStatus,
-    remove
+    remove,
+    addImages,
+    updateImage,
+    removeImage
 };

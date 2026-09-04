@@ -1,9 +1,9 @@
-const {getProfile, updateProfile, updateProfileImage} = require("../services/customerProfileService");
+const {getProfile, updateProfile, updateProfileImage} = require("../services/profileService");
 
 const { logger } = require("../utils/logger");
 
 
-const getCustomerProfile = async (req, res, next) => {
+const getUserProfile = async (req, res, next) => {
 
     try {
 
@@ -33,7 +33,7 @@ const getCustomerProfile = async (req, res, next) => {
 };
 
 
-const updateCustomerProfile = async (req, res, next) => {
+const updateUserProfile = async (req, res, next) => {
 
     try {
 
@@ -64,7 +64,7 @@ const updateCustomerProfile = async (req, res, next) => {
     }
 };
 
-const updateCustomerProfileImage = async (req, res, next) => {
+const updateUserProfileImage = async (req, res, next) => {
     try{
         const user = await updateProfileImage(
             req.user.userId,
@@ -90,4 +90,4 @@ const updateCustomerProfileImage = async (req, res, next) => {
 
 
 
-module.exports = {getCustomerProfile, updateCustomerProfile, updateCustomerProfileImage};
+module.exports = {getUserProfile, updateUserProfile, updateUserProfileImage};

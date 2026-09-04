@@ -30,7 +30,7 @@ const deleteImage = async (publicId) => {
         return;
     }
 
-    cloudinary.uploader.destroy(public_id);
+    return cloudinary.uploader.destroy(publicId);
 };
 
 module.exports = {uploadImage, deleteImage};

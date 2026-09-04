@@ -2,31 +2,77 @@ const multer = require("multer");
 
 const storage = multer.memoryStorage();
 
-const fileFilter = (req, file, cb) => {
+const imageFileFilter = (allowedTypes = []) => {
 
-    const allowedTypes = [
-        "image/jpg",
+    return (req, file, cb) => {
+
+        if (!file.mimetype.startsWith("image/")) {
+            return cb(
+                new Error("Only image files are allowed"),
+                false
+            );
+        }
+
+        if (
+            allowedTypes.length > 0 &&
+            !allowedTypes.includes(file.mimetype)
+        ) {
+            return cb(
+                new Error("This image format is not allowed"),
+                false
+            );
+        }
+
+        cb(null, true);
+    };
+};
+
+
+const upload = multer({
+    storage,
+
+    fileFilter: imageFileFilter(),
+
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    }
+});
+
+
+const profileImageUpload = multer({
+    storage,
+
+    fileFilter: imageFileFilter([
         "image/jpeg",
         "image/png",
         "image/webp"
-    ];
+    ]),
 
-    if(allowedTypes.includes(file.mimetype)){
-        cb(null, true)
+    limits: {
+        fileSize: 5 * 1024 * 1024
     }
-    else {
-        cb(new Error("Only JPG, JPEG, PNG, and WEBP images are allowed"));
+});
+
+
+const reviewImageUpload = multer({
+    storage,
+
+    fileFilter: imageFileFilter([
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    ]),
+
+    limits: {
+        fileSize: 5 * 1024 * 1024,
+        files: 5
     }
+});
+
+
+
+module.exports = {
+    upload,
+    profileImageUpload,
+    reviewImageUpload
 };
-
-const upload = multer(
-    {
-        storage,
-        fileFilter,
-        limits : {
-            fileSize : 5 * 1024 * 1024
-        }
-    }
-);
-
-module.exports = {upload};
