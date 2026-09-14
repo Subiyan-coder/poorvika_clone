@@ -16,17 +16,6 @@ const createProductRules = [
         .isLength({ max: 500 })
         .withMessage("Product name cannot exceed 500 characters"),
 
-    body("slug")
-        .trim()
-        .notEmpty()
-        .withMessage("Product slug is required")
-        .isLength({ max: 500 })
-        .withMessage("Product slug cannot exceed 500 characters")
-        .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
-        .withMessage(
-            "Slug must contain only lowercase letters, numbers and hyphens"
-        ),
-
     body("description")
         .trim()
         .notEmpty()
@@ -38,6 +27,11 @@ const createProductRules = [
         .withMessage("Brand is required")
         .isLength({ max: 100 })
         .withMessage("Brand cannot exceed 100 characters"),
+    
+    body("primarySpecification")
+        .optional()
+        .isObject()
+        .withMessage("primarySpecification must be an object"),
 
     body("specification")
         .optional()
@@ -61,18 +55,6 @@ const updateProductRules = [
         .isLength({ max: 500 })
         .withMessage("Product name cannot exceed 500 characters"),
 
-    body("slug")
-        .optional()
-        .trim()
-        .notEmpty()
-        .withMessage("Product slug cannot be empty")
-        .isLength({ max: 500 })
-        .withMessage("Product slug cannot exceed 500 characters")
-        .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
-        .withMessage(
-            "Slug must contain only lowercase letters, numbers and hyphens"
-        ),
-
     body("description")
         .optional()
         .trim()
@@ -86,6 +68,11 @@ const updateProductRules = [
         .withMessage("Brand cannot be empty")
         .isLength({ max: 100 })
         .withMessage("Brand cannot exceed 100 characters"),
+
+    body("primarySpecification")
+        .optional()
+        .isObject()
+        .withMessage("primarySpecification must be an object"),
 
     body("specification")
         .optional()

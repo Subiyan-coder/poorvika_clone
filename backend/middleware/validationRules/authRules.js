@@ -1,4 +1,12 @@
-const {nameRule, emailRule, phoneRule, passwordRule, otpRule} = require("./globalRules");
+const {
+    nameRule, 
+    emailRule, 
+    phoneRule, 
+    passwordRule, 
+    otpRule,
+    identifierRule,
+    typeRule
+} = require("./globalRules");
 
 const { body } = require("express-validator");
 
@@ -18,35 +26,27 @@ const registerRules = [
 ];
 
 const loginRules = [
-    emailRule,
-    phoneRule,
+    typeRule,
+    identifierRule,
     passwordRule,
     otpRule,
 
     body().custom((value) => {
-        if(!value.email && !value.phone) {
-            throw new Error("Either email or phone number is required");
-        }
 
-        if(!value.password && !value.otp) {
-            throw new Error("Either Password or OTP is required");
+        if (!value.password && !value.otp) {
+            throw new Error(
+                "Either Password or OTP is required"
+            );
         }
 
         return true;
     })
 ];
 
+
 const loginOtpRequestRules = [
-    emailRule,
-    phoneRule,
-
-    body().custom((value) => {
-        if (!value.email && !value.phone) {
-            throw new Error("Either email or phone number is required");
-        }
-
-        return true;
-    })
+    typeRule,
+    identifierRule
 ];
 
 module.exports = {

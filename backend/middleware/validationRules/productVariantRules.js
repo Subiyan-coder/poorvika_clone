@@ -9,12 +9,6 @@ const createProductVariantRules = [
         .isMongoId()
         .withMessage("Invalid product ID"),
 
-    body("sku")
-        .trim()
-        .notEmpty()
-        .withMessage("SKU is required")
-        .isLength({ max: 100 })
-        .withMessage("SKU cannot exceed 100 characters"),
 
     body("price")
         .notEmpty()
@@ -22,7 +16,7 @@ const createProductVariantRules = [
         .isFloat({ min: 0 })
         .withMessage("Price must be a positive number"),
 
-    body("discountPrice")
+    body("discountPercentage")
         .optional()
         .isFloat({ min: 0 })
         .withMessage(
@@ -38,20 +32,12 @@ const createProductVariantRules = [
 
 const updateProductVariantRules = [
 
-    body("sku")
-        .optional()
-        .trim()
-        .notEmpty()
-        .withMessage("SKU cannot be empty")
-        .isLength({ max: 100 })
-        .withMessage("SKU cannot exceed 100 characters"),
-
     body("price")
         .optional()
         .isFloat({ min: 0 })
         .withMessage("Price must be a positive number"),
 
-    body("discountPrice")
+    body("discountPercentage")
         .optional()
         .isFloat({ min: 0 })
         .withMessage(

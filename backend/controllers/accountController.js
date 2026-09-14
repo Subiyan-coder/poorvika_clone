@@ -2,7 +2,8 @@ const {
     requestEmailChangeOtp,
     changeEmail,
     requestPhoneChangeOtp,
-    changePhone
+    changePhone,
+    getAdmins
 } = require("../services/accountService");
 
 const { logger } = require("../utils/logger");
@@ -122,9 +123,38 @@ const verifyPhoneChange = async (req, res, next) => {
 };
 
 
+const getAdminsList = async (
+    req,
+    res,
+    next
+) => {
+
+    try {
+
+        const admins =
+            await getAdmins();
+
+        return res.status(200).json({
+
+            success: true,
+
+            data: admins
+
+        });
+
+    }
+    catch (error) {
+
+        next(error);
+
+    }
+
+};
+
 module.exports = {
     requestEmailChange,
     verifyEmailChange,
     requestPhoneChange,
-    verifyPhoneChange
+    verifyPhoneChange,
+    getAdminsList
 };

@@ -1,7 +1,6 @@
 const express = require("express");
 
 const {
-    create,
     getOne,
     getAll,
     adjust,
@@ -9,7 +8,6 @@ const {
 } = require("../controllers/inventoryController");
 
 const {
-    createInventoryRules,
     adjustInventoryRules,
     availabilityRules
 } = require("../middleware/validationRules/inventoryRules");
@@ -37,16 +35,6 @@ router.get(
     authenticate,
     authorize("ADMIN"),
     getOne
-);
-
-
-router.post(
-    "/",
-    authenticate,
-    authorize("ADMIN"),
-    createInventoryRules,
-    validate,
-    create
 );
 
 

@@ -30,4 +30,51 @@ const otpRule = body ("otp")
         .withMessage('OTP must be exactly 6 digits');
 
 
-module.exports = {nameRule, emailRule, phoneRule, passwordRule, otpRule};
+const identifierRule = body("identifier")
+    .trim()
+    .notEmpty()
+    .withMessage("Email or phone number is required")
+    .custom((value, { req }) => {
+
+        if (req.body.type === "EMAIL") {
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                throw new Error(
+                    "Please provide a valid email address"
+                );
+            }
+
+        }
+
+        if (req.body.type === "PHONE") {
+
+            if (!/^[6-9]\d{9}$/.test(value)) {
+                throw new Error(
+                    "Please provide a valid 10-digit phone number"
+                );
+            }
+
+        }
+
+        return true;
+    });
+
+
+const typeRule = body("type")
+    .trim()
+    .notEmpty()
+    .withMessage("Verification type is required")
+    .isIn(["EMAIL", "PHONE"])
+    .withMessage("Invalid verification type");
+
+
+
+module.exports = {
+    nameRule, 
+    emailRule, 
+    phoneRule, 
+    passwordRule, 
+    otpRule, 
+    identifierRule, 
+    typeRule
+};

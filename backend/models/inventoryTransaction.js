@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const inventoryTransactionSchema = new mongoose.Schema(
     {
+        performedBy : {
+            type : mongoose.Schema.Types.ObjectId,
+            ref : "User",
+            required : true
+        },
+
         productVariantId : {
             type : mongoose.Schema.Types.ObjectId,
             ref : "ProductVariant",

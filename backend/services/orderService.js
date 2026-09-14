@@ -170,6 +170,7 @@ const buildOrderItems = async (
 
 
 const reserveInventory = async (
+    userId,
     orderItems,
     orderId,
     session
@@ -214,6 +215,7 @@ const reserveInventory = async (
 
         await InventoryTransaction.create(
             [{
+                performedBy: user.id,
                 productVariantId: item.productVariantId,
                 type: "RESERVATION",
                 quantity: item.quantity,
@@ -701,6 +703,8 @@ const cancelOrder = async (
 
                 await InventoryTransaction.create(
                     [{
+                        performedBy: userId,
+                        
                         productVariantId:
                             item.productVariantId,
 

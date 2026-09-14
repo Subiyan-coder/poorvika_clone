@@ -47,10 +47,24 @@ const otpSchema = new mongoose.Schema(
     }
 );
 
+
+otpSchema.index(
+    {
+        identifier: 1,
+        type: 1,
+        purpose: 1
+    },
+    {
+        unique: true
+    }
+);
+
+
 otpSchema.index(
     {expiresAt: 1 },
     {expireAfterSeconds: 0 }
 );
+
 
 const OTP = mongoose.model("OTP",otpSchema);
 

@@ -21,6 +21,15 @@ const {
     authorize
 } = require("../middleware/authMiddleware");
 
+const {
+    createPasswordLimiter,
+    changePasswordLimiter,
+    passwordResetOtpLimiter,
+    resetPasswordLimiter
+} = require("../middleware/rateLimiter");
+
+
+
 const router = express.Router();
 
 
@@ -28,6 +37,7 @@ router.post(
     "/",
     authenticate,
     authorize("CUSTOMER"),
+    createPasswordLimiter,
     createPasswordRules,
     validate,
     createPassword
@@ -38,6 +48,7 @@ router.patch(
     "/",
     authenticate,
     authorize("CUSTOMER"),
+    changePasswordLimiter,
     changePasswordRules,
     validate,
     changePassword
@@ -46,6 +57,7 @@ router.patch(
 
 router.post(
     "/reset/request-otp",
+    passwordResetOtpLimiter,
     passwordResetOtpRules,
     validate,
     requestPasswordResetOtp
@@ -54,6 +66,7 @@ router.post(
 
 router.post(
     "/reset",
+    resetPasswordLimiter,
     resetPasswordRules,
     validate,
     resetPassword

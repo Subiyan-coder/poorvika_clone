@@ -13,7 +13,8 @@ const {
 const {
     createCategoryRules,
     updateCategoryRules,
-    categoryStatusRules
+    categoryStatusRules,
+    categoryAdminQueryRules
 } = require("../middleware/validationRules/categoryRules");
 
 const { validate } = require("../middleware/validate");
@@ -22,6 +23,10 @@ const {
     authenticate,
     authorize
 } = require("../middleware/authMiddleware");
+
+const { upload } = require("../middleware/upload");
+
+
 
 const router = express.Router();
 
@@ -43,6 +48,8 @@ router.get(
     "/admin/all",
     authenticate,
     authorize("ADMIN"),
+    categoryAdminQueryRules,
+    validate,
     getAllForAdmin
 );
 
@@ -50,6 +57,7 @@ router.post(
     "/",
     authenticate,
     authorize("ADMIN"),
+    upload.single("image"),
     createCategoryRules,
     validate,
     create
@@ -59,6 +67,7 @@ router.patch(
     "/:categoryId",
     authenticate,
     authorize("ADMIN"),
+    upload.single("image"),
     updateCategoryRules,
     validate,
     update

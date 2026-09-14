@@ -24,6 +24,14 @@ const {
     authorize
 } = require("../middleware/authMiddleware");
 
+const {
+    createCartOrderLimiter,
+    createDirectOrderLimiter,
+    cancelOrderLimiter
+} = require("../middleware/rateLimiter");
+
+
+
 const router = express.Router();
 
 
@@ -40,6 +48,7 @@ router.post(
     "/cart",
     authenticate,
     authorize("CUSTOMER"),
+    createCartOrderLimiter,
     createCartOrderRules,
     validate,
     createFromCart
@@ -49,6 +58,7 @@ router.post(
     "/buy-now",
     authenticate,
     authorize("CUSTOMER"),
+    createDirectOrderLimiter,
     createDirectOrderRules,
     validate,
     createDirect
@@ -58,6 +68,7 @@ router.patch(
     "/:orderId/cancel",
     authenticate,
     authorize("CUSTOMER"),
+    cancelOrderLimiter,
     cancelOrderRules,
     validate,
     cancel

@@ -87,11 +87,20 @@ const getAllForAdmin = async (req, res, next) => {
 
     try {
 
-        const products = await getAllProductsForAdmin();
+        const result = await getAllProductsForAdmin({
+            page: Number(req.query.page) || 1,
+            limit: Number(req.query.limit) || 10,
+            search: req.query.search || "",
+            categoryId: req.query.categoryId,
+            status: req.query.status || "ALL",
+            sort: req.query.sort || "NEWEST"
+        });
 
         return res.status(200).json({
             success: true,
-            data: products
+            data: result.products,
+            pagination: result.pagination,
+            counts: result.counts
         });
 
     }

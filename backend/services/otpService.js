@@ -1,183 +1,187 @@
 const crypto = require("crypto");
 const bcrypt = require("bcryptjs");
+
+const { config } = require("../config/env");
 const OTP = require("../models/otp");
-const OtpAttempt = require("../models/otpAttempt");
+
 
 const OTP_EXPIRY_MINUTES = 5;
 const MAX_OTP_ATTEMPT = 5;
 
+
 const generateOtp = () => {
-    return crypto.randomInt(100000, 1000000).toString();
+
+    return crypto
+        .randomInt(100000, 1000000)
+        .toString();
+
 };
 
-const hashOtp = async(otp) => {
-    return bcrypt.hash(otp, 10);
+
+const hashOtp = async (otp) => {
+
+    return bcrypt.hash(otp, config.bcrypt.saltRounds);
+
 };
 
-const createOtp = async ({identifier, type, purpose}) => {
 
-    let attemptRecord = await OtpAttempt.findOne({
-        identifier,
-        type,
-        purpose
-    });
-
-    if (attemptRecord?.isLocked) {
-        const error = new Error(
-            "You've reached your maximum OTP attempt. Please try again later."
-        );
-
-        error.statusCode = 429;
-        throw error;
-    }
-
-    if (!attemptRecord) {
-        attemptRecord = await OtpAttempt.create({
-            identifier,
-            type,
-            purpose,
-            expiresAt: new Date(
-                Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000
-            )
-        });
-    }
+const createOtp = async ({
+    identifier,
+    type,
+    purpose
+}) => {
 
     const otp = generateOtp();
+
     const otpHash = await hashOtp(otp);
-    
+
     const expiresAt = new Date(
-        Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000
+        Date.now() +
+        OTP_EXPIRY_MINUTES * 60 * 1000
     );
 
-    const otpRecord = await OTP.create(
-        {
-            identifier,
-            type,
-            purpose,
-            otpHash,
-            expiresAt
-        }
-    );
 
-    return {
-        otp, 
-        otpRecord
-    };
-};
+    const otpRecord = await OTP.findOneAndUpdate(
 
-const verifyOtp = async ({identifier, type, otp, purpose}) => {
-
-    const attemptRecord = await OtpAttempt.findOne({
-        identifier,
-        type,
-        purpose
-    });
-
-    if (!attemptRecord) {
-        const error = new Error("OTP attempt record not found");
-        error.statusCode = 400;
-        throw error;
-    }
-
-    if (attemptRecord.isLocked) {
-        const error = new Error(
-            "You've reached your maximum OTP attempt. Please try again later."
-        );
-
-        error.statusCode = 429;
-        throw error;
-    }
-
-    const otpRecords = await OTP.find(
         {
             identifier,
             type,
             purpose
-        }
-    ).sort({createdAt : -1});
+        },
 
-    if(!otpRecords.length){
-        const error = new Error("OTP not found or expired");
-        error.statusCode = 400;
-        throw error;
-    }
+        {
+            otpHash,
+            expiresAt,
+            attempts: 0
+        },
 
-    let otpRecord = null;
-
-    for(const record of otpRecords) {
-
-        if(record.expiresAt <= new Date()){
-            continue;
+        {
+            upsert: true,
+            new: true
         }
 
-        if(record.attempts >= MAX_OTP_ATTEMPT) {
-            continue;
-        }
+    );
 
-        const isValid = await bcrypt.compare(
-            otp,
-            record.otpHash
-        );
 
-        if(isValid){
-            otpRecord = record;
-            break;
-        };
 
-        record.attempts += 1;
-        await record.save();
+    return {
+        otp,
+        otpRecord,
+        expiresAt
+    };
 
-        
+};
 
-    }
+
+const verifyOtp = async ({
+    identifier,
+    type,
+    otp,
+    purpose
+}) => {
+
+    const otpRecord = await OTP.findOne({
+
+        identifier,
+        type,
+        purpose
+
+    });
+
 
     if (!otpRecord) {
 
-        attemptRecord.attempts += 1;
-        await attemptRecord.save();
+        const error = new Error(
+            "OTP not found or expired"
+        );
 
-        if (attemptRecord.attempts >= MAX_OTP_ATTEMPT) {
+        error.statusCode = 400;
 
-            attemptRecord.isLocked = true;
+        throw error;
 
-            attemptRecord.expiresAt = new Date(
-                Date.now() + 15 * 60 * 1000
-            );
+    }
 
-            await attemptRecord.save();
 
-            await OTP.deleteMany({
-                identifier,
-                type,
-                purpose
-            });
+    if (otpRecord.expiresAt <= new Date()) {
+
+        await otpRecord.deleteOne();
+
+        const error = new Error(
+            "OTP has expired"
+        );
+
+        error.statusCode = 400;
+
+        throw error;
+
+    }
+
+
+    if (otpRecord.attempts >= MAX_OTP_ATTEMPT) {
+
+        await otpRecord.deleteOne();
+
+        const error = new Error(
+            "You've reached your maximum OTP attempts. Please request a new OTP."
+        );
+
+        error.statusCode = 429;
+
+        throw error;
+
+    }
+
+
+    const isValid = await bcrypt.compare(
+        otp,
+        otpRecord.otpHash
+    );
+
+
+    if (!isValid) {
+
+        otpRecord.attempts += 1;
+
+        await otpRecord.save();
+
+
+        if (otpRecord.attempts >= MAX_OTP_ATTEMPT) {
+
+            await otpRecord.deleteOne();
 
             const error = new Error(
-                "You've reached your maximum OTP attempt. Please try again later."
+                "You've reached your maximum OTP attempts. Please request a new OTP."
             );
 
             error.statusCode = 429;
+
             throw error;
+
         }
 
-        const error = new Error("Invalid OTP");
+
+        const error = new Error(
+            "Invalid OTP"
+        );
+
         error.statusCode = 400;
+
         throw error;
+
     }
 
-    await OTP.deleteMany(
-        {
-            identifier : otpRecord.identifier,
-            type : otpRecord.type,
-            purpose : otpRecord.purpose
-        }
-    );
 
-    await OtpAttempt.deleteOne({
-        _id: attemptRecord._id
-    });
+    await otpRecord.deleteOne();
 
-    return otpRecord;
+
+    return {
+        verified: true
+    };
+
 };
 
-module.exports = {createOtp, verifyOtp}
+
+module.exports = {
+    createOtp,
+    verifyOtp
+};

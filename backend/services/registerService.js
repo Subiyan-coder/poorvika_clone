@@ -1,185 +1,267 @@
 const {hashPassword} = require("./passwordService");
 const {config} = require("../config/env");
+
 const User = require("../models/user");
 const PendingRegistration = require("../models/pendingRegistration");
 const RefreshToken = require("../models/refreshToken");
+
 const {createOtp, verifyOtp} = require("./otpService");
 const {sendOtpNotification} = require("./notificationService");
 const {generateAccessToken, generateRefreshToken, hashToken} = require("../utils/jwt");
 
 
-const registerService = async({name, email, phone, password}) => {
-const existingUser = await User.findOne(
-        {
-            $or : [
-                ...(email ? [{email}] : []),
-                ...(phone ? [{phone}]: [])
-            ]
-        }
-    );
+const registerService = async ({
+    name,
+    email,
+    phone,
+    password,
+    verifiedIdentifier,
+    verifiedType
+}) => {
 
-    if(existingUser) {
-        const error = new Error("An account already exists with this Email or Phone number");
+    const existingEmail = await User.findOne({ email });
+
+    const existingPhone = await User.findOne({ phone });
+
+    if (existingEmail && existingPhone) {
+        const error = new Error(
+            "Email and phone number are already registered"
+        );
         error.statusCode = 409;
         throw error;
     }
 
-    await PendingRegistration.deleteMany(
-        {
-            $or : [
-                ...(email ? [{email}] : []),
-                ...(phone ? [{phone}] : [])
-            ]
-        }
-    );
-
-    const passwordHash = password
-            ? await hashPassword(password)
-            : null;
-
-    if (password) {
-        const user = await User.create({
-            name,
-            email,
-            phone,
-            password: passwordHash,
-            isVerified: true
-        });
-
-        return {
-            message: "Account created successfully",
-            data: {
-                user
-            }
-        };
+    if (existingEmail) {
+        const error = new Error(
+            "Email is already registered"
+        );
+        error.statusCode = 409;
+        throw error;
     }
 
-    const identifier = email || phone;
-    const type = email ? "EMAIL" : "PHONE";
+    if (existingPhone) {
+        const error = new Error(
+            "Phone number is already registered"
+        );
+        error.statusCode = 409;
+        throw error;
+    }
 
-    const {otp, otpRecord} = await createOtp(
-        {
-            identifier,
-            type,
-            purpose : "REGISTER"
-        }
-    );
+    const pendingRegistration =
+        await PendingRegistration.findOne(
+            verifiedType === "EMAIL"
+                ? { email: verifiedIdentifier }
+                : { phone: verifiedIdentifier }
+        );
 
-    const expiresAt = new Date (
-        Date.now() + 5 * 60 * 1000
-    );
+    if (!pendingRegistration) {
 
-    await PendingRegistration.create(
-        {
-            name,
-            email,
-            phone,
-            passwordHash,
-            expiresAt
-        }
-    );
+        const error = new Error(
+            "Registration verification not found"
+        );
 
-    await sendOtpNotification(
-        {
-            type,
-            identifier,
-            otp
-        }
-    )
+        error.statusCode = 400;
+
+        throw error;
+    }
+
+
+    if ( !pendingRegistration.emailVerified  &&
+        !pendingRegistration.phoneVerified
+    ) {
+        const error = new Error(
+            "Please verify your Email first"
+        );
+
+        error.statusCode = 400;
+        throw error;
+    }
+
+
+    const passwordHash =
+        await hashPassword(password);
+
+
+    const user = await User.create({
+        name,
+        email,
+        phone,
+        password: passwordHash,
+        isVerified: true
+    });
+
+
+    await pendingRegistration.deleteOne();
+
+
+    const payload = {
+        userId: user._id,
+        userRole: user.role
+    };
+
+
+    const accessToken =
+        generateAccessToken(payload);
+
+
+    const refreshToken =
+        generateRefreshToken(payload);
+
+
+    const hashedRefreshToken =
+        hashToken(refreshToken);
+
+
+    await RefreshToken.create({
+        userId: user._id,
+
+        tokenHash: hashedRefreshToken,
+
+        expiresAt: new Date(
+            Date.now() +
+            config.jwt.refreshExpiresIn
+        )
+    });
+
 
     return {
-        message : "OTP sent successfully",
-        data : {
-            identifier,
-            type,
-            purpose : otpRecord.purpose,
-            expiresAt
-        }
+        user,
+        accessToken,
+        refreshToken
+    };
+
+};
+
+
+const verifyAccountOtp = async ({
+    identifier,
+    type,
+    otp
+}) => {
+
+    if (!["EMAIL", "PHONE"].includes(type)) {
+        const error = new Error("Invalid verification type");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const pendingRegistration =
+        await PendingRegistration.findOne(
+            type === "EMAIL"
+                ? { email: identifier }
+                : { phone: identifier }
+        );
+
+    if (!pendingRegistration) {
+        const error = new Error(
+            "Registration request not found"
+        );
+
+        error.statusCode = 400;
+
+        throw error;
+    }
+
+    await verifyOtp({
+        identifier,
+        type,
+        otp,
+        purpose: "REGISTER"
+    });
+
+    if (type === "EMAIL") {
+        pendingRegistration.emailVerified = true;
+    }
+
+    if (type === "PHONE") {
+        pendingRegistration.phoneVerified = true;
+    }
+
+    await pendingRegistration.save();
+
+    return {
+        verified: true,
+        identifier,
+        type
     };
 };
 
-const verifyAccountOtp = async ({email, phone, otp}) => {
+
+const requestRegistrationOtp = async ({
+    identifier,
+    type
+}) => {
 
     const existingUser = await User.findOne(
-        {
-            $or : [
-                ...(email ? [{email}] : []),
-                ...(phone ? [{phone}]: [])
-            ]
-        }
+        type === "EMAIL"
+            ? { email: identifier }
+            : { phone: identifier }
     );
 
-    if(existingUser) {
-        const error = new Error("An account already exists with this Email or Phone number");
+
+    if (existingUser) {
+
+        const error = new Error(
+            "An account already exists with this Email or Phone number"
+        );
+
         error.statusCode = 409;
+
         throw error;
     }
 
-        const identifier = email || phone;
-        const type = email ? "EMAIL" : "PHONE";
+    
+    await PendingRegistration.deleteMany(
+        type === "EMAIL"
+            ? { email: identifier }
+            : { phone: identifier }
+    );
 
-        const pendingRegistration = await PendingRegistration.findOne(
-            email
-            ? {email}
-            : {phone}
-        );
+    
+    const { otp, expiresAt } = await createOtp({
 
-        if(!pendingRegistration){
-            const error = new Error("Registration request not found");
-            error.statusCode = 400;
-            throw error
-        }
+        identifier,
+        type,
+        purpose: "REGISTER"
 
-        await verifyOtp(
-            {
-                identifier,
-                type,
-                otp,
-                purpose : "REGISTER"
-            }
-        );
+    });
 
-        const user = await User.create(
-            {
-                name : pendingRegistration.name,
-                email : pendingRegistration.email,
-                phone : pendingRegistration.phone,
-                password : pendingRegistration.passwordHash,
-                isVerified : true
-            }
-        );
 
-        await pendingRegistration.deleteOne(
-            {
-                _id : pendingRegistration._id
-            }
-        );
+    await PendingRegistration.create({
 
-        const payload = {
-            userId : user._id,
-            userRole : user.role
-        };
+        email: type === "EMAIL"
+            ? identifier
+            : null,
 
-        const accessToken = generateAccessToken(payload);
-        const refreshToken = generateRefreshToken(payload);
+        phone: type === "PHONE"
+            ? identifier
+            : null,
 
-        const hashedRefreshToken = hashToken(refreshToken);
+        isVerified: false,
 
-        await RefreshToken.create(
-            {
-                userId : user._id,
-                tokenHash : hashedRefreshToken,
-                expiresAt : new Date(
-                    Date.now + config.jwt.refreshExpiresIn
-                )
-            }
-        );
+        expiresAt
 
-        return {
-            user,
-            accessToken,
-            refreshToken
-        };
-}
+    });
 
-module.exports = {registerService, verifyAccountOtp};
+
+    await sendOtpNotification({
+
+        type,
+        identifier,
+        otp
+
+    });
+
+
+    return {
+
+        identifier,
+        type,
+        expiresAt
+
+    };
+
+};
+
+
+module.exports = {registerService, verifyAccountOtp, requestRegistrationOtp};

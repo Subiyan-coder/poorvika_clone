@@ -67,7 +67,7 @@ const updateProfileImage = async (userId, file) => {
     await user.save();
 
     if(oldPublicId){
-        deleteImage(oldPublicId);
+        await deleteImage(oldPublicId);
     }
 };
 

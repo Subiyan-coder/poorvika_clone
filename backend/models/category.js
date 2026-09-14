@@ -9,12 +9,20 @@ const categorySchema = new mongoose.Schema(
             unique : true,
             trim : true
         },
-
+        
         slug : {
             type : String,
             required : true,
             unique : true,
             lowercase : true,
+            trim : true
+        },
+
+        sku : {
+            type : String,
+            required : true,
+            unique : true,
+            uppercase : true,
             trim : true
         },
 
@@ -27,13 +35,27 @@ const categorySchema = new mongoose.Schema(
         images : {
             url : {
                 type : String,
-                trim : true
+                trim : true,
+                required : true
             },
             
             publicId : {
                 type : String,
-                trim : true
+                trim : true,
+                required : true
             }
+        },
+
+        activeProductCount : {
+            type : Number,
+            default : 0,
+            min : 0
+        },
+
+        inactiveProductCount : {
+            type : Number,
+            default : 0,
+            min : 0
         },
 
         isActive : {
@@ -46,6 +68,19 @@ const categorySchema = new mongoose.Schema(
         timestamps : true
     }
 );
+
+categorySchema.index({
+    isActive : 1
+});
+
+categorySchema.index({
+    activeProductCount : -1
+});
+
+categorySchema.index({
+    inactiveProductCount : -1
+});
+
 
 const Category = mongoose.model("Category", categorySchema);
 

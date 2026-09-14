@@ -38,11 +38,6 @@ router.get(
     getAll
 );
 
-router.get(
-    "/:productId",
-    getOne
-);
-
 
 // Admin
 
@@ -51,6 +46,13 @@ router.get(
     authenticate,
     authorize("ADMIN"),
     getAllForAdmin
+);
+
+// Customer single product
+
+router.get(
+    "/:productId",
+    getOne
 );
 
 router.post(

@@ -15,7 +15,10 @@ const create = async (req, res, next) => {
 
     try {
 
-        const category = await createCategory(req.body);
+        const category = await createCategory({
+            ...req.body,
+            file: req.file
+        });
 
         return res.status(201).json({
             success: true,
@@ -79,11 +82,26 @@ const getAllForAdmin = async (req, res, next) => {
 
     try {
 
-        const categories = await getAllCategoriesForAdmin();
+        const {
+            page,
+            limit,
+            search,
+            status,
+            sort
+        } = req.query;
+
+        const result =
+            await getAllCategoriesForAdmin({
+                page: Number(page),
+                limit: Number(limit),
+                search,
+                status,
+                sort
+            });
 
         return res.status(200).json({
             success: true,
-            data: categories
+            data: result
         });
 
     }
@@ -100,7 +118,10 @@ const update = async (req, res, next) => {
 
         const category = await updateCategory(
             req.params.categoryId,
-            req.body
+            {
+                ...req.body,
+                file: req.file
+            }
         );
 
         return res.status(200).json({

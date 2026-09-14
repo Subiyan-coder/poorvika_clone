@@ -1,5 +1,4 @@
 const {
-    createInventory,
     getInventory,
     getAllInventory,
     adjustInventory,
@@ -7,32 +6,6 @@ const {
 } = require("../services/inventoryService");
 
 const { logger } = require("../utils/logger");
-
-
-const create = async (req, res, next) => {
-
-    try {
-
-        const inventory = await createInventory(
-            req.body
-        );
-
-        return res.status(201).json({
-            success: true,
-            message: "Inventory created successfully",
-            data: inventory
-        });
-
-    }
-    catch (err) {
-
-        logger.error(
-            `Inventory creation failed: ${err.message}`
-        );
-
-        next(err);
-    }
-};
 
 
 const getOne = async (req, res, next) => {
@@ -80,11 +53,13 @@ const adjust = async (req, res, next) => {
     try {
 
         const inventory = await adjustInventory({
-            productVariantId:
-                req.params.productVariantId,
+
+            productVariantId: req.params.productVariantId,
             quantity: req.body.quantity,
             type: req.body.type,
-            note: req.body.note
+            note: req.body.note,
+            performedBy: req.user.userId
+
         });
 
         return res.status(200).json({
@@ -138,7 +113,6 @@ const updateAvailabilityStatus = async (
 
 
 module.exports = {
-    create,
     getOne,
     getAll,
     adjust,

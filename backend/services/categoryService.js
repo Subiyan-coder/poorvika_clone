@@ -1,7 +1,11 @@
 const Category = require("../models/category");
 const Product = require("../models/product");
+const Inventory = require("../models/inventory");
+const { uploadImage, deleteImage } = require("./cloudinaryService"); 
 
-const createCategory = async ( { name, slug, description, images } ) => {
+const createCategory = async ( { name, description, file } ) => {
+
+    const slug = name;
 
     const existingCategory = await Category.findOne(
         {
@@ -18,12 +22,28 @@ const createCategory = async ( { name, slug, description, images } ) => {
         throw error;
     }
 
-    const category = await Category.ceate(
+    if (!file) {
+        const error = new Error("Category image is required");
+        error.statusCode = 400;
+        throw error;
+    }
+
+
+    const uploadedImage = await uploadImage(
+        file.buffer,
+        "poorvika/categories"
+    );
+
+    const category = await Category.create(
         {
             name,
             slug,
+            sku : slug,
             description,
-            images
+            images : {
+                url : uploadedImage.url,
+                publicId : uploadedImage.publicId
+            }
         }
     );
 
@@ -66,13 +86,12 @@ const updateCategory = async (
     categoryId,
     {
         name,
-        slug,
         description,
-        images
+        file
     }
 ) => {
 
-    const category = Category.findById(categoryId);
+    const category = await Category.findById(categoryId);
 
     if(!category){
         const error = new Error("category not found");
@@ -97,36 +116,54 @@ const updateCategory = async (
         category.name = name;
     };
 
-    if (slug !== undefined && slug !== category.slug) {
-
-        const existingCategory = await Category.findOne(
-            {
-                slug,
-                _id: { $ne: categoryId }
-            }
-        );
-
-        if (existingCategory) {
-            const error = new Error("A category with this slug already exists");
-            error.statusCode = 409;
-            throw error;
-        }
-
-        category.slug = slug;
-    }
-
     if (description !== undefined) {
         category.description = description;
     }
 
-    if (images !== undefined) {
-        category.images = images;
+    if (file) {
+
+    const oldPublicId = category.images?.publicId;
+
+    const uploadedImage = await uploadImage(
+        file.buffer,
+        "poorvika/categories"
+    );
+
+    category.images = {
+        url: uploadedImage.url,
+        publicId: uploadedImage.publicId
+    };
+
+    if (oldPublicId) {
+            await deleteImage(oldPublicId);
+        }
     }
 
     await category.save();
 
     return category;
 
+};
+
+const hasCategoryStock = async (categoryId) => {
+
+    const inventoryExists = await Inventory.exists({
+        categoryId,
+        $or : [
+            {
+                quantity : {
+                    $gt : 0
+                }
+            },
+            {
+                reservedQuantity : {
+                    $gt : 0
+                }
+            }
+        ]
+    });
+
+    return Boolean(inventoryExists);
 };
 
 
@@ -135,13 +172,44 @@ const updateCategoryStatus = async (
     isActive
 ) => {
 
-    const category = await Category.findById(categoryId);
+    const category = await Category.findById(
+        categoryId
+    );
 
     if (!category) {
-        const error = new Error("Category not found");
+
+        const error = new Error(
+            "Category not found"
+        );
+
         error.statusCode = 404;
         throw error;
     }
+
+
+    if (category.isActive === isActive) {
+        return category;
+    }
+
+
+    if (!isActive) {
+
+        const hasStock =
+            await hasCategoryStock(
+                categoryId
+            );
+
+        if (hasStock) {
+
+            const error = new Error(
+                "Category cannot be deactivated because inventory stock exists"
+            );
+
+            error.statusCode = 409;
+            throw error;
+        }
+    }
+
 
     category.isActive = isActive;
 
@@ -150,37 +218,178 @@ const updateCategoryStatus = async (
     return category;
 };
 
-const getAllCategoriesForAdmin = async () => {
 
-    return Category.find().sort({
-        createdAt: -1
-    });
+const getAllCategoriesForAdmin = async ({
+    page = 1,
+    limit = 10,
+    search = "",
+    status = "ALL",
+    sort = "NEWEST"
+}) => {
+
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+
+    // Search
+    if (search) {
+
+        filter.$or = [
+            {
+                name: {
+                    $regex: search,
+                    $options: "i"
+                }
+            },
+            {
+                slug: {
+                    $regex: search,
+                    $options: "i"
+                }
+            }
+        ];
+    }
+
+    // Status filter
+    if (status === "ACTIVE") {
+        filter.isActive = true;
+    }
+
+    if (status === "INACTIVE") {
+        filter.isActive = false;
+    }
+
+    // Sort
+    let sortOption;
+
+    switch (sort) {
+
+        case "OLDEST":
+            sortOption = { createdAt: 1 };
+            break;
+
+        case "NAME_ASC":
+            sortOption = { name: 1 };
+            break;
+
+        case "NAME_DESC":
+            sortOption = { name: -1 };
+            break;
+
+        case "NEWEST":
+        default:
+            sortOption = { createdAt: -1 };
+            break;
+    }
+
+    const [
+        categories,
+        totalItems,
+        totalCategories,
+        activeCategories,
+        inactiveCategories
+    ] = await Promise.all([
+
+        Category.find(filter)
+            .sort(sortOption)
+            .skip(skip)
+            .limit(limit),
+
+        Category.countDocuments(filter),
+
+        Category.countDocuments(),
+
+        Category.countDocuments({
+            isActive: true
+        }),
+
+        Category.countDocuments({
+            isActive: false
+        })
+    ]);
+
+    return {
+
+        categories,
+
+        pagination: {
+            page,
+            limit,
+            totalItems,
+            totalPages: Math.ceil(
+                totalItems / limit
+            )
+        },
+
+        counts: {
+            total: totalCategories,
+            active: activeCategories,
+            inactive: inactiveCategories
+        }
+    };
 };
+
 
 const deleteCategory = async (categoryId) => {
 
-    const category = await Category.findById(categoryId);
+    const category = await Category.findById(
+        categoryId
+    );
 
     if (!category) {
-        const error = new Error("Category not found");
+
+        const error = new Error(
+            "Category not found"
+        );
+
         error.statusCode = 404;
         throw error;
     }
+
+
+    const hasStock =
+        await hasCategoryStock(
+            categoryId
+        );
+
+    if (hasStock) {
+
+        const error = new Error(
+            "Category cannot be deleted because inventory stock exists"
+        );
+
+        error.statusCode = 409;
+        throw error;
+    }
+
 
     const productExists = await Product.exists({
         categoryId
     });
 
     if (productExists) {
-        const error = new Error( "Category cannot be deleted because products are associated with it" );
+
+        const error = new Error(
+            "Category cannot be deleted because products are associated with it"
+        );
+
         error.statusCode = 409;
         throw error;
     }
 
+
+    const publicId =
+        category.images?.publicId;
+
     await category.deleteOne();
 
+    if (publicId) {
+        await deleteImage(publicId);
+    }
+
+
     return {
-        message: "Category deleted successfully"
+        message : "Category deleted successfully"
     };
 };
 

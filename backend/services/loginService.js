@@ -3,19 +3,16 @@ const User = require("../models/user");
 const RefreshToken = require("../models/refreshToken");
 const {createOtp, verifyOtp} = require("./otpService");
 const {sendOtpNotification} = require("./notificationService");
-const {generateAccessToken} = require("../utils/jwt");
+const {generateAccessToken, hashToken} = require("../utils/jwt");
 const {createRefreshToken} = require("./refreshTokenService");
 
-const requestLoginOtp = async ({email, phone}) => {
-
-    const identifier = email || phone;
-    const type = email ? "EMAIL" : "PHONE";
+const requestLoginOtp = async ({identifier, type}) => {
 
     const user = await User.findOne(
-        email 
-        ? {email} 
-        : {phone}
-    ).select("+password");
+        type === "EMAIL"
+            ? { email: identifier }
+            : { phone: identifier }
+    );
 
     if(!user){
         const error = new Error("User not found");
@@ -56,89 +53,101 @@ const requestLoginOtp = async ({email, phone}) => {
     }
 };
 
-const loginService = async ({email, phone, password, otp}) => {
-
-    const identifier = email || phone;
-    const type = email ? "EMAIL" : "PHONE";
+const loginService = async ({
+    identifier,
+    type,
+    password,
+    otp
+}) => {
 
     const user = await User.findOne(
-        email
-        ? {email}
-        : {phone}
-    );
+        type === "EMAIL"
+            ? { email: identifier }
+            : { phone: identifier }
+    ).select("+password");
 
-    if(!user) {
-        const error = new Error("User not exist");
+    if (!user) {
+        const error = new Error("User not found");
         error.statusCode = 401;
         throw error;
     }
 
-    if(!user.isActive) {
-        const error = new Error("Your account is inActive");
+    if (!user.isActive) {
+        const error = new Error("Your account is inactive");
         error.statusCode = 403;
         throw error;
     }
 
-    if(password){
+    if (password) {
 
-        if(!user.password){
-            const error = new Error("Password is not available for this account");
-            error.statusCode = 400;
-            throw error;
-        }
+        const isPasswordValid =
+            await verifyPassword(
+                password,
+                user.password
+            );
 
-        const isPasswordValid = await verifyPassword(
-            password,
-            user.password
-        )
+        if (!isPasswordValid) {
+            const error = new Error(
+                "Invalid Email or Password"
+            );
 
-        if(!isPasswordValid) {
-            const error = new Error("Invalid Email or Password");
             error.statusCode = 401;
+
             throw error;
         }
     }
 
-    else if(otp){
+    else if (otp) {
 
-        await verifyOtp(
-            {
-                identifier,
-                type,
-                otp,
-                purpose : "LOGIN"
-            }
-        );
+        await verifyOtp({
+            identifier,
+            type,
+            otp,
+            purpose: "LOGIN"
+        });
+
     }
 
     else {
 
-        const error = new Error("Either Password or OTP is required");
+        const error = new Error(
+            "Either Password or OTP is required"
+        );
+
         error.statusCode = 400;
+
         throw error;
     }
 
+
     const payload = {
-        userId : user._id,
-        userRole : user.role
+        userId: user._id,
+        userRole: user.role
     };
 
-    const accessToken = generateAccessToken(payload);
 
-    const refreshToken = await createRefreshToken(
-        user._id,
-        user.role
-    );
+    const accessToken =
+        generateAccessToken(payload);
+
+
+    const refreshToken =
+        await createRefreshToken(
+            user._id,
+            user.role
+        );
+
 
     return {
-        message : "Login successful",
-        data : {
+        message: "Login successful",
+
+        data: {
             user,
             accessToken,
             refreshToken
         }
     };
 };
+
 
 const logoutService = async (refreshToken) => {
 
@@ -162,4 +171,7 @@ const logoutService = async (refreshToken) => {
     };
 };
 
-module.exports = {requestLoginOtp, loginService, logoutService};
+module.exports = {
+    requestLoginOtp, 
+    loginService, 
+    logoutService};

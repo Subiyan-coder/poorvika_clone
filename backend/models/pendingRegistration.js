@@ -2,43 +2,52 @@ const mongoose = require("mongoose");
 
 const pendingRegistrationSchema = new mongoose.Schema(
     {
-        name : {
-            type : String,
-            required : true,
-            trim : true
+        email: {
+            type: String,
+            lowercase: true,
+            trim: true,
+            default: null
         },
 
-        email : {
-            type : String,
-            lowercase : true,
-            trim : true
+        phone: {
+            type: String,
+            trim: true,
+            default: null
         },
 
-        phone : {
-            type : String,
-            trim : true
-        },
-        
-        passwordHash : {
-            type : String
+        emailVerified: {
+            type: Boolean,
+            default: false
         },
 
-        expiresAt : {
-            type : Date,
-            required : true
+        phoneVerified: {
+            type: Boolean,
+            default: false
+        },
+
+        expiresAt: {
+            type: Date,
+            required: true
         }
     },
 
     {
-        timestamps : true
+        timestamps: true
     }
 );
 
+
 pendingRegistrationSchema.index(
-    {expiresAt : 1},
-    {expireAfterSeconds : 0}
+    { expiresAt: 1 },
+    { expireAfterSeconds: 0 }
 );
 
-const PendingRegistration = mongoose.model("PendingRegistration", pendingRegistrationSchema);
+
+const PendingRegistration =
+    mongoose.model(
+        "PendingRegistration",
+        pendingRegistrationSchema
+    );
+
 
 module.exports = PendingRegistration;

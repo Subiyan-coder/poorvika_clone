@@ -116,9 +116,53 @@ const changePhone = async (userId, newPhone, otp) => {
     return changeContact(userId, newPhone, otp, "PHONE");
 };
 
+const getAdmins = async () => {
+
+    return User.find(
+        {
+            role: "ADMIN"
+        },
+        {
+            name: 1,
+            email: 1
+        }
+    )
+    .sort({
+        name: 1
+    })
+    .lean();
+
+};
+
+const getCurrentUser = async (userId) => {
+
+    const user = await User.findById(userId)
+        .select(
+            "_id name email phone role profileImage isVerified isActive"
+        )
+        .lean();
+
+    if (!user) {
+
+        const error = new Error(
+            "User not found"
+        );
+
+        error.statusCode = 404;
+
+        throw error;
+
+    }
+
+    return user;
+};
+
+
 module.exports = {
     requestEmailChangeOtp,
     requestPhoneChangeOtp,
     changeEmail,
-    changePhone
+    changePhone,
+    getAdmins,
+    getCurrentUser
 };

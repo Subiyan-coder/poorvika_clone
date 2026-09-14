@@ -12,6 +12,7 @@ const productRoute = require("./productRoute");
 const ProductVariantRoute = require("./productVariantRoute");
 
 const inventoryRoute = require("./inventoryRoute");
+const inventoryTransactionRoutes = require("./inventoryTransactionRoutes");
 
 const orderRoute = require("./orderRoute");
 const couponRoute = require("./couponRoute");
@@ -22,6 +23,7 @@ const paymentRoute = require("./paymentRoute");
 const reviewRoute = require("./reviewRoute");
 
 const supportRequestRoute = require("./supportRequestRoute");
+const advertisementRoute = require("./advertisementRoute")
 
 
 const router = express.Router();
@@ -82,6 +84,11 @@ router.use(
     inventoryRoute
 );
 
+router.use(
+    "/inventory-transactions",
+    inventoryTransactionRoutes
+)
+
 // order routes
 
 router.use(
@@ -123,6 +130,13 @@ router.use(
 router.use(
     "/support",
     supportRequestRoute
+);
+
+// ad route
+
+router.use(
+    "/advertisements",
+    advertisementRoute
 );
 
 module.exports = router;

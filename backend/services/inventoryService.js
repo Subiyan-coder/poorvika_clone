@@ -1,63 +1,26 @@
 const Inventory = require("../models/inventory");
 const InventoryTransaction = require("../models/inventoryTransaction");
-const ProductVariant = require("../models/productVariant");
-
-
-const createInventory = async ({
-    productVariantId,
-    quantity,
-    lowStockThreshold
-}) => {
-
-    const variant = await ProductVariant.findById(
-        productVariantId
-    );
-
-    if (!variant) {
-        const error = new Error("Product variant not found");
-        error.statusCode = 404;
-        throw error;
-    }
-
-    const existingInventory = await Inventory.findOne({
-        productVariantId
-    });
-
-    if (existingInventory) {
-        const error = new Error(
-            "Inventory already exists for this product variant"
-        );
-        error.statusCode = 409;
-        throw error;
-    }
-
-    const inventory = await Inventory.create({
-        productVariantId,
-        quantity,
-        lowStockThreshold
-    });
-
-    if (quantity > 0) {
-        await InventoryTransaction.create({
-            productVariantId,
-            type: "ADD",
-            quantity,
-            note: "Initial inventory"
-        });
-    }
-
-    return inventory;
-};
 
 
 const getInventory = async (productVariantId) => {
 
     const inventory = await Inventory.findOne({
         productVariantId
-    }).populate(
-        "productVariantId",
-        "sku price discountPrice attributes"
-    );
+    }).populate({
+            path: "productVariantId",
+            select:
+                "sku price discountPrice color attributes productId",
+            populate: {
+                path: "productId",
+                select:
+                    "name slug sku brand categoryId primarySpecification secondarySpecification",
+                populate: {
+                    path: "categoryId",
+                    select: "name slug"
+                }
+            }
+        });
+    
 
     if (!inventory) {
         const error = new Error("Inventory not found");
@@ -72,10 +35,20 @@ const getInventory = async (productVariantId) => {
 const getAllInventory = async () => {
 
     return Inventory.find()
-        .populate(
-            "productVariantId",
-            "sku price discountPrice attributes"
-        )
+        .populate({
+            path: "productVariantId",
+            select:
+                "sku price discountPrice color attributes productId",
+            populate: {
+                path: "productId",
+                select:
+                    "name slug sku brand categoryId primarySpecification secondarySpecification",
+                populate: {
+                    path: "categoryId",
+                    select: "name slug"
+                }
+            }
+        })
         .sort({
             updatedAt: -1
         });
@@ -86,7 +59,8 @@ const adjustInventory = async ({
     productVariantId,
     quantity,
     type,
-    note
+    note,
+    performedBy
 }) => {
 
     const inventory = await Inventory.findOne({
@@ -94,10 +68,13 @@ const adjustInventory = async ({
     });
 
     if (!inventory) {
-        const error = new Error("Inventory not found");
+        const error = new Error(
+            "Inventory not found"
+        );
         error.statusCode = 404;
         throw error;
     }
+
 
     if (!["ADD", "REMOVE", "DAMAGE"].includes(type)) {
         const error = new Error(
@@ -107,52 +84,62 @@ const adjustInventory = async ({
         throw error;
     }
 
-    if (type === "DAMAGE") {
 
-        const availableQuantity =
-            inventory.quantity -
-            inventory.reservedQuantity;
-
-        if (quantity > availableQuantity) {
-            const error = new Error(
-                "Damage quantity cannot exceed available stock"
-            );
-            error.statusCode = 400;
-            throw error;
-        }
-
-        inventory.quantity -= quantity;
+    if (
+        !Number.isInteger(quantity) ||
+        quantity <= 0
+    ) {
+        const error = new Error(
+            "Quantity must be a positive integer"
+        );
+        error.statusCode = 400;
+        throw error;
     }
+
+
+    const availableQuantity =
+        inventory.quantity -
+        inventory.reservedQuantity;
+
+
+    if (
+        ["REMOVE", "DAMAGE"].includes(type) &&
+        quantity > availableQuantity
+    ) {
+
+        const error = new Error(
+            `${type === "DAMAGE" ? "Damage" : "Removal"} quantity cannot exceed available stock`
+        );
+
+        error.statusCode = 400;
+
+        throw error;
+    }
+
 
     if (type === "ADD") {
         inventory.quantity += quantity;
     }
 
-    if (type === "REMOVE") {
-
-        const availableQuantity =
-            inventory.quantity -
-            inventory.reservedQuantity;
-
-        if (quantity > availableQuantity) {
-            const error = new Error(
-                "Quantity to remove cannot exceed available stock"
-            );
-            error.statusCode = 400;
-            throw error;
-        }
-
+    if (
+        type === "REMOVE" ||
+        type === "DAMAGE"
+    ) {
         inventory.quantity -= quantity;
     }
 
+
     await inventory.save();
+
 
     await InventoryTransaction.create({
         productVariantId,
         type,
         quantity,
+        performedBy,
         note
     });
+
 
     return inventory;
 };
@@ -182,7 +169,6 @@ const updateAvailability = async (
 
 
 module.exports = {
-    createInventory,
     getInventory,
     getAllInventory,
     adjustInventory,

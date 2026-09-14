@@ -22,10 +22,21 @@ const productVariantSchema = new mongoose.Schema(
             min : 0
         },
 
+        discountPercentage : {
+            type : Number,
+            default : 0
+        },
+
         discountPrice : {
             type : Number,
             min : 0,
             default : 0
+        },
+
+        color : {
+            type : String,
+            required : true,
+            trim : true
         },
 
         attributes : {
@@ -64,6 +75,13 @@ const productVariantSchema = new mongoose.Schema(
 productVariantSchema.index(
     {
         productId : 1,
+        isActive : 1
+    }
+);
+
+productVariantSchema.index(
+    {
+        sku : 1,
         isActive : 1
     }
 );

@@ -86,14 +86,34 @@ const getAllForAdmin = async (req, res, next) => {
 
     try {
 
-        const variants =
-            await getAllProductVariantsForAdmin(
-                req.query.productId
-            );
+        const result =
+            await getAllProductVariantsForAdmin({
+
+                page:
+                    Number(req.query.page) || 1,
+
+                limit:
+                    Number(req.query.limit) || 10,
+
+                search:
+                    req.query.search || "",
+
+                status:
+                    req.query.status || "all",
+
+                sort:
+                    req.query.sort || "newest",
+
+                productId:
+                    req.query.productId
+
+            });
 
         return res.status(200).json({
             success: true,
-            data: variants
+            data: result.variants,
+            pagination: result.pagination,
+            counts: result.counts
         });
 
     }

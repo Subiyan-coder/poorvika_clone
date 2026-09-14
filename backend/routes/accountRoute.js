@@ -4,7 +4,8 @@ const {
     requestEmailChange,
     verifyEmailChange,
     requestPhoneChange,
-    verifyPhoneChange
+    verifyPhoneChange,
+    getAdminsList
 } = require("../controllers/accountController");
 
 const {
@@ -21,7 +22,22 @@ const {
     authorize
 } = require("../middleware/authMiddleware");
 
+const {
+    emailChangeOtpLimiter,
+    phoneChangeOtpLimiter
+} = require("../middleware/rateLimiter");
+
+
+
 const router = express.Router();
+
+router.get(
+    "/admins",
+    authenticate,
+    authorize("ADMIN"),
+    getAdminsList
+);
+
 
 router.use(
     authenticate,
@@ -30,6 +46,7 @@ router.use(
 
 router.post(
     "/email/request-otp",
+    emailChangeOtpLimiter,
     changeEmailOtpRules,
     validate,
     requestEmailChange
@@ -44,6 +61,7 @@ router.patch(
 
 router.post(
     "/phone/request-otp",
+    phoneChangeOtpLimiter,
     changePhoneOtpRules,
     validate,
     requestPhoneChange

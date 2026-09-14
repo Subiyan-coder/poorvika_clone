@@ -1,4 +1,5 @@
 require("dotenv").config();
+const ms = require("ms");
 
 const config = {
     port : process.env.PORT,
@@ -6,10 +7,10 @@ const config = {
 
     jwt : {
         accessSecret : process.env.JWT_ACCESS_SECRET,
-        accessExpiresIn : process.env.JWT_ACCESS_EXPIRES_IN,
+        accessExpiresIn : ms(process.env.JWT_ACCESS_EXPIRES_IN),
 
         refreshSecret : process.env.JWT_REFRESH_SECRET,
-        refreshExpiresIn : process.env.JWT_REFRESH_EXPIRES_IN
+        refreshExpiresIn : ms(process.env.JWT_REFRESH_EXPIRES_IN)
     },
 
     mail : {
@@ -24,13 +25,19 @@ const config = {
     },
 
     bcrypt : {
-        saltRounds : process.env.SALT_ROUNDS
+        saltRounds : Number(process.env.SALT_ROUNDS)
     },
 
     cloudinary : {
-        cloudName : process.env.CLOUDINAY_CLOUD_NAME,
-        apiKey : process.env.CLOUDINAY_AP1_KEY,
-        apiSecret : process.env.CLOUDINAY_AP1_SECRET
+        cloudName : process.env.CLOUDINARY_CLOUD_NAME,
+        apiKey : process.env.CLOUDINARY_API_KEY,
+        apiSecret : process.env.CLOUDINARY_API_SECRET
+    },
+
+    admin : {
+        adminName : process.env.ADMIN_NAME,
+        adminEmail : process.env.ADMIN_EMAIL,
+        adminPassword : process.env.ADMIN_PASSWORD
     }
 };
 
