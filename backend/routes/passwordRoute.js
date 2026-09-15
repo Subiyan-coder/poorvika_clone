@@ -36,7 +36,6 @@ const router = express.Router();
 router.post(
     "/",
     authenticate,
-    authorize("CUSTOMER"),
     createPasswordLimiter,
     createPasswordRules,
     validate,
@@ -47,7 +46,6 @@ router.post(
 router.patch(
     "/",
     authenticate,
-    authorize("CUSTOMER"),
     changePasswordLimiter,
     changePasswordRules,
     validate,

@@ -16,6 +16,9 @@ import AdminInventoryTransactions from "../pages/admin/AdminInventoryTransaction
 
 import Advertisement from "../pages/admin/Advertisement";
 
+import ProfileRoutes from "./ProfileRoutes";
+
+
 const AdminRoutes = () => {
 
     return (
@@ -58,6 +61,11 @@ const AdminRoutes = () => {
                 <Route
                     path="advertisements"
                     element={<Advertisement />}
+                />
+
+                <Route
+                    path="profile/*"
+                    element={<ProfileRoutes />}
                 />
 
             </Route>

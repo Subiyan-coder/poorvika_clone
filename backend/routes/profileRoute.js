@@ -25,17 +25,15 @@ const router = express.Router();
 
 
 router.get(
-    "/profile",
+    "/",
     authenticate,
-    authorize("CUSTOMER"),
     getUserProfile
 );
 
 
 router.patch(
-    "/profile",
+    "/",
     authenticate,
-    authorize("CUSTOMER"),
     updateProfileRules,
     validate,
     updateUserProfile
@@ -43,9 +41,8 @@ router.patch(
 
 
 router.patch(
-    "/profile/picture",
+    "/picture",
     authenticate,
-    authorize("CUSTOMER"),
     profileImageUpload.single("profileImage"),
     updateUserProfileImage
 );

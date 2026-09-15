@@ -84,6 +84,23 @@ const Navbar = () => {
                         gap-4
                     ">
 
+                        <button
+                            type="button"
+                            className="
+                                flex
+                                items-center
+                                gap-3
+                                rounded-xl
+                                px-2
+                                py-1.5
+                                transition
+                                hover:bg-gray-50
+                            "
+                            onClick={() => navigate("/admin/address")}
+                        >
+                            Address
+                        </button>
+
                         {/* Admin Profile */}
 
                         <button

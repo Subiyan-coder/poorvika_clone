@@ -4,7 +4,7 @@ const {uploadImage, deleteImage} = require("./cloudinaryService");
 const getProfile = async (userId) => {
 
     const user = await User.findById(userId).select(
-        "name email phone role isVerified createdAt updatedAt"
+        "name email phone role profileImage isVerified createdAt updatedAt"
     );
 
     if (!user) {
@@ -69,6 +69,8 @@ const updateProfileImage = async (userId, file) => {
     if(oldPublicId){
         await deleteImage(oldPublicId);
     }
+
+    return user;
 };
 
 

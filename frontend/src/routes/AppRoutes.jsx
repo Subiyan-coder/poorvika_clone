@@ -3,10 +3,8 @@ import {
     Route
 } from "react-router-dom";
 
-import AuthRoute from "./AuthRoute";
 import AdminRoutes from "./AdminRoutes";
-import CustomerLayout from "../layouts/CustomerLayout";
-import Home from "../pages/Home";
+import CustomerRoutes from "./CustomerRoutes";
 
 
 const AppRoutes = () => {
@@ -14,7 +12,9 @@ const AppRoutes = () => {
     return (
         <Routes>
 
-            {/* Admin */}
+            {/* =========================
+                ADMIN
+            ========================= */}
 
             <Route
                 path="/admin/*"
@@ -22,25 +22,13 @@ const AppRoutes = () => {
             />
 
 
-            {/* Customer */}
-
-            <Route
-                element={<CustomerLayout />}
-            >
-
-                <Route
-                    path="/"
-                    element={<Home />}
-                />
-
-            </Route>
-
-
-            {/* Authentication */}
+            {/* =========================
+                CUSTOMER
+            ========================= */}
 
             <Route
                 path="/*"
-                element={<AuthRoute />}
+                element={<CustomerRoutes />}
             />
 
         </Routes>

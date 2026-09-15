@@ -17,15 +17,13 @@ const {
 const { validate } = require("../middleware/validate");
 
 const {
-    authenticate,
-    authorize
+    authenticate
 } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 router.use(
-    authenticate,
-    authorize("CUSTOMER")
+    authenticate
 );
 
 router.post(

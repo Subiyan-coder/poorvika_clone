@@ -36,26 +36,27 @@ router.use(
 );
 
 
-// customer routes
+// account routes
 
 router.use(
-    "/customer",
+    "/profile",
     profileRoute
 );
 
 router.use(
-    "/customer/addresses",
-    addressRoute
-);
-
-router.use(
-    "/customer/password",
+    "/password",
     passwordRoute
 );
 
+
 router.use(
-    "/customer/account",
+    "/account",
     accountRoute
+);
+
+router.use(
+    "/addresses",
+    addressRoute
 );
 
 // category routes

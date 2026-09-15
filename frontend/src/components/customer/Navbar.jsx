@@ -4,6 +4,7 @@ import {
     ShoppingCart,
     User,
     ChevronDown,
+    MapPin,
     LogOut,
     Package,
     UserCircle
@@ -394,7 +395,7 @@ const Navbar = () => {
                                         onClick={() => {
                                             setAccountOpen(false);
                                             navigate(
-                                                "/account/profile"
+                                                "/profile"
                                             );
                                         }}
                                         className="
@@ -447,7 +448,32 @@ const Navbar = () => {
                                         My Orders
 
                                     </button>
+                                    
+                                    <button
+                                        type="button"
+                                        className="
+                                            flex
+                                            w-full
+                                            items-center
+                                            gap-3
+                                            px-4
+                                            py-3
+                                            text-sm
+                                            text-gray-700
+                                            hover:bg-gray-50
+                                        "
+                                        onClick={() => {
+                                            setAccountOpen(false);
+                                            navigate("/profile/address");
+                                        }}
+                                    >
+                                        <MapPin size={18} />
 
+                                        <span>
+                                            Addresses
+                                        </span>
+
+                                    </button>
 
                                     <button
                                         type="button"

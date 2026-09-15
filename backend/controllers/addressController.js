@@ -16,6 +16,7 @@ const create = async (req, res, next) => {
 
         const address = await createAddress(
             req.user.userId,
+            req.user.role,
             req.body
         );
 
@@ -84,6 +85,7 @@ const update = async (req, res, next) => {
 
         const address = await updateAddress(
             req.user.userId,
+            req.user.role,
             req.params.addressId,
             req.body
         );
@@ -108,6 +110,7 @@ const remove = async (req, res, next) => {
 
         const result = await deleteAddress(
             req.user.userId,
+            req.user.role,
             req.params.addressId
         );
 
@@ -130,6 +133,7 @@ const setDefault = async (req, res, next) => {
 
         const address = await setDefaultAddress(
             req.user.userId,
+            req.user.role,
             req.params.addressId
         );
 
