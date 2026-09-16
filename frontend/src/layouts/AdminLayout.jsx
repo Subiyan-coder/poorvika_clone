@@ -7,7 +7,7 @@ import Sidebar from "../components/admin/Sidebar";
 const AdminLayout = () => {
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="flex min-h-screen bg-gray-50">
 
             {/* Navbar */}
 
@@ -22,7 +22,7 @@ const AdminLayout = () => {
             </header>
 
 
-            <div className="flex pt-16">
+            <div className="flex w-full min-w-0 pt-16">
 
                 {/* Sidebar */}
 
@@ -46,13 +46,15 @@ const AdminLayout = () => {
 
                 <main className="
                     min-h-[calc(100vh-4rem)]
-                    w-full
+                    min-w-0
+                    flex-1
                     lg:ml-64
                 ">
                     <div className="
                         mx-auto
                         w-full
                         max-w-7xl
+                        min-w-0
                         px-6
                         py-6
                     ">

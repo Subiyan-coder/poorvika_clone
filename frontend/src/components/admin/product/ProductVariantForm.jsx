@@ -26,7 +26,17 @@ const ProductVariantForm = ({
             productId: "",
             color: "",
             price: "",
-            discountPercentage: ""
+            discountPercentage: "",
+
+            primarySpecification: {
+                name: "",
+                value: ""
+            },
+
+            secondarySpecification: {
+                name: "",
+                value: ""
+            }
         }
 
     });
@@ -56,7 +66,21 @@ const ProductVariantForm = ({
                     initialData.price ?? "",
 
                 discountPercentage:
-                    initialData.discountPercentage ?? ""
+                    initialData.discountPercentage ?? "",
+
+                primarySpecification: {
+                    name:
+                        initialData.primarySpecification?.name || "",
+                    value:
+                        initialData.primarySpecification?.value || ""
+                },
+
+                secondarySpecification: {
+                    name:
+                        initialData.secondarySpecification?.name || "",
+                    value:
+                        initialData.secondarySpecification?.value || ""
+                }
 
             });
 
@@ -78,7 +102,16 @@ const ProductVariantForm = ({
                 productId: "",
                 color: "",
                 price: "",
-                discountPercentage: ""
+                discountPercentage: "",
+                primarySpecification: {
+                    name: "",
+                    value: ""
+                },
+
+                secondarySpecification: {
+                    name: "",
+                    value: ""
+                }
 
             });
 
@@ -126,6 +159,16 @@ const ProductVariantForm = ({
 
                 color:
                     data.color.trim(),
+
+                primarySpecification: {
+                    name: data.primarySpecification.name.trim(),
+                    value: data.primarySpecification.value.trim()
+                },
+
+                secondarySpecification: {
+                    name: data.secondarySpecification.name.trim(),
+                    value: data.secondarySpecification.value.trim()
+                },
 
                 price:
                     Number(data.price),
@@ -226,6 +269,61 @@ const ProductVariantForm = ({
                 error={errors.color}
                 disabled={loading}
             />
+
+            {/* Primary Specification */}
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                <FormInput
+                    id="primarySpecificationName"
+                    name="primarySpecification.name"
+                    label="Primary Specification"
+                    placeholder="e.g. RAM"
+                    register={register}
+                    error={errors.primarySpecification?.name}
+                    disabled={loading}
+                />
+
+                <FormInput
+                    id="primarySpecificationValue"
+                    name="primarySpecification.value"
+                    label="Value"
+                    placeholder="e.g. 8GB"
+                    register={register}
+                    error={errors.primarySpecification?.value}
+                    disabled={loading}
+                />
+
+            </div>
+
+
+            {/* Secondary Specification */}
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                <FormInput
+                    id="secondarySpecificationName"
+                    name="secondarySpecification.name"
+                    label="Secondary Specification"
+                    placeholder="e.g. Storage"
+                    register={register}
+                    error={errors.secondarySpecification?.name}
+                    disabled={loading}
+                />
+
+                <FormInput
+                    id="secondarySpecificationValue"
+                    name="secondarySpecification.value"
+                    label="Value"
+                    placeholder="e.g. 1TB"
+                    register={register}
+                    error={errors.secondarySpecification?.value}
+                    disabled={loading}
+                />
+
+            </div>
+
+            
 
             {/* Price */}
 

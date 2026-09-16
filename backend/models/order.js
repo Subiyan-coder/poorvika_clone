@@ -161,7 +161,6 @@ const orderSchema = new mongoose.Schema(
             enum: [
                 "PENDING",
                 "CONFIRMED",
-                "PROCESSING",
                 "SHIPPED",
                 "DELIVERED",
                 "CANCELLED",

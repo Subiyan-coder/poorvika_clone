@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useAuth } from "../context/useAuth";
+
 import {
     User,
     Mail,
@@ -10,10 +12,10 @@ import {
     ChevronRight
 } from "lucide-react";
 
-import ImageUploader from "../components/ImageUploader";
 
 import {
     getProfile,
+    updateProfile,
     updateProfileImage
 } from "../services/profileService";
 
@@ -22,6 +24,8 @@ import { toastSuccess } from "../utils/toast";
 
 const Profile = () => {
 
+    const { setUser } = useAuth();
+
     const navigate = useNavigate();
 
     const [profile, setProfile] = useState(null);
@@ -29,11 +33,17 @@ const Profile = () => {
     const [profileImage, setProfileImage] =
         useState(null);
 
+    const [profileImagePreview, setProfileImagePreview] = useState("");
+
     const [loading, setLoading] =
         useState(true);
 
     const [uploading, setUploading] =
         useState(false);
+
+    const [editingName, setEditingName] = useState(false);
+    const [name, setName] = useState("");
+    const [savingName, setSavingName] = useState(false);
 
 
     // =========================
@@ -51,6 +61,10 @@ const Profile = () => {
 
                 setProfile(
                     response.data
+                );
+
+                setName(
+                    response.data.name || ""
                 );
 
             }
@@ -76,54 +90,90 @@ const Profile = () => {
     }, []);
 
 
-    // =========================
-    // Profile Image
-    // =========================
+    useEffect(() => {
 
-    const handleImageChange = async (file) => {
+    if (!profileImage) {
 
-        if (!file) {
+        setProfileImagePreview("");
+
+        return;
+    }
+
+    const url =
+        URL.createObjectURL(profileImage);
+
+    setProfileImagePreview(url);
+
+    return () => {
+        URL.revokeObjectURL(url);
+    };
+
+}, [profileImage]);
+
+
+    const handleSaveName = async () => {
+
+        if (!name.trim()) {
             return;
         }
 
+        try {
+
+            setSavingName(true);
+
+            const response = await updateProfile({
+                name: name.trim()
+            });
+
+            setProfile(response.data);
+            setEditingName(false);
+
+            toastSuccess("Name updated successfully");
+
+        }
+        catch (error) {
+
+            console.error(
+                "Name update failed:",
+                error
+            );
+
+        }
+        finally {
+
+            setSavingName(false);
+
+        }
+    };
+
+
+    const handleProfileImageUpload = async () => {
+
+        if (!profileImage) {
+            return;
+        }
 
         try {
 
             setUploading(true);
 
-
             const response =
-                await updateProfileImage(file);
+                await updateProfileImage(profileImage);
 
+            const updatedProfile =
+                response.data || response;
 
-            /*
-             * If the backend returns the
-             * updated profile, use it.
-             *
-             * Otherwise fetch the profile again.
-             */
+            setProfile(previous => ({
+                ...previous,
+                profileImage: updatedProfile.profileImage
+            }));
 
-            if (response?.data) {
-
-                setProfile(
-                    response.data
-                );
-
-            }
-            else {
-
-                const updatedProfile =
-                    await getProfile();
-
-                setProfile(
-                    updatedProfile.data
-                );
-
-            }
-
+            setUser(previous => ({
+                ...previous,
+                profileImage: updatedProfile.profileImage
+            }));
 
             setProfileImage(null);
-
 
             toastSuccess(
                 "Profile picture updated successfully"
@@ -143,7 +193,6 @@ const Profile = () => {
             setUploading(false);
 
         }
-
     };
 
 
@@ -296,22 +345,180 @@ const Profile = () => {
 
                     {/* Profile Image */}
 
-                    <div className="
-                        w-full
-                        sm:w-48
-                    ">
+                    <div className="w-full sm:w-48">
 
-                        <ImageUploader
-                            value={profileImage}
-                            onChange={handleImageChange}
-                            multiple={false}
-                            maxFiles={1}
-                            disabled={uploading}
-                            label="Profile picture"
-                        />
+                        <p className="
+                            mb-3
+                            text-sm
+                            font-medium
+                            text-gray-700
+                        ">
+                            Profile picture
+                        </p>
+
+
+                        <div className="
+                            flex
+                            flex-col
+                            items-center
+                        ">
+
+                            <div className="
+                                flex
+                                h-32
+                                w-32
+                                items-center
+                                justify-center
+                                overflow-hidden
+                                rounded-full
+                                border
+                                border-gray-200
+                                bg-gray-100
+                            ">
+
+                                {profileImagePreview ||
+                                profile?.profileImage?.url ? (
+
+                                    <img
+                                        src={
+                                            profileImagePreview ||
+                                            profile.profileImage.url
+                                        }
+                                        alt={profile.name || "Profile"}
+                                        className="
+                                            h-full
+                                            w-full
+                                            object-cover
+                                        "
+                                    />
+
+                                ) : (
+
+                                    <User
+                                        size={52}
+                                        strokeWidth={1.5}
+                                        className="text-gray-400"
+                                    />
+
+                                )}
+
+                            </div>
+
+
+                            {/* Change image */}
+
+                            {!profileImage && (
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        document
+                                            .getElementById("profileImageInput")
+                                            .click()
+                                    }
+                                    className="
+                                        mt-4
+                                        rounded-xl
+                                        border
+                                        border-gray-300
+                                        px-4
+                                        py-2
+                                        text-sm
+                                        font-medium
+                                        text-gray-700
+                                        transition
+                                        hover:bg-gray-50
+                                    "
+                                >
+                                    Change image
+                                </button>
+
+                            )}
+
+
+                            {/* File input */}
+
+                            <input
+                                id="profileImageInput"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                className="hidden"
+                                onChange={(event) => {
+
+                                    const file =
+                                        event.target.files?.[0];
+
+                                    if (file) {
+                                        setProfileImage(file);
+                                    }
+
+                                    event.target.value = "";
+
+                                }}
+                            />
+
+
+                            {/* Selected image actions */}
+
+                            {profileImage && (
+
+                                <div className="
+                                    mt-4
+                                    flex
+                                    gap-2
+                                ">
+
+                                    <button
+                                        type="button"
+                                        onClick={handleProfileImageUpload}
+                                        disabled={uploading}
+                                        className="
+                                            rounded-xl
+                                            bg-gray-900
+                                            px-4
+                                            py-2
+                                            text-sm
+                                            font-medium
+                                            text-white
+                                            hover:bg-gray-800
+                                            disabled:opacity-50
+                                        "
+                                    >
+                                        {uploading
+                                            ? "Uploading..."
+                                            : "Upload image"
+                                        }
+                                    </button>
+
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setProfileImage(null)
+                                        }
+                                        disabled={uploading}
+                                        className="
+                                            rounded-xl
+                                            border
+                                            border-gray-300
+                                            px-4
+                                            py-2
+                                            text-sm
+                                            font-medium
+                                            text-gray-700
+                                            hover:bg-gray-50
+                                        "
+                                    >
+                                        Cancel
+                                    </button>
+
+                                </div>
+
+                            )}
+
+                        </div>
 
                     </div>
-
 
                     {/* Profile Details */}
 
@@ -337,23 +544,138 @@ const Profile = () => {
                                 "
                             />
 
-                            <div>
+                            <div className="flex-1">
 
-                                <p className="
-                                    text-xs
-                                    text-gray-500
+                                <div className="
+                                    flex
+                                    items-center
+                                    justify-between
+                                    gap-3
                                 ">
-                                    Name
-                                </p>
 
-                                <p className="
-                                    mt-1
-                                    text-sm
-                                    font-medium
-                                    text-gray-900
-                                ">
-                                    {profile.name}
-                                </p>
+                                    <p className="
+                                        text-xs
+                                        text-gray-500
+                                    ">
+                                        Name
+                                    </p>
+
+                                    {!editingName && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setName(profile.name || "");
+                                                setEditingName(true);
+                                            }}
+                                            className="
+                                                text-xs
+                                                font-medium
+                                                text-gray-700
+                                                hover:text-gray-900
+                                                hover:underline
+                                            "
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
+
+                                </div>
+
+                                {editingName ? (
+
+                                    <div className="
+                                        mt-2
+                                        flex
+                                        flex-col
+                                        gap-2
+                                        sm:flex-row
+                                    ">
+
+                                        <input
+                                            type="text"
+                                            value={name}
+                                            onChange={(event) =>
+                                                setName(event.target.value)
+                                            }
+                                            disabled={savingName}
+                                            className="
+                                                h-10
+                                                flex-1
+                                                rounded-xl
+                                                border
+                                                border-gray-300
+                                                px-3
+                                                text-sm
+                                                text-gray-900
+                                                outline-none
+                                                focus:border-gray-900
+                                                focus:ring-2
+                                                focus:ring-gray-100
+                                            "
+                                        />
+
+                                        <button
+                                            type="button"
+                                            onClick={handleSaveName}
+                                            disabled={
+                                                savingName ||
+                                                !name.trim()
+                                            }
+                                            className="
+                                                h-10
+                                                rounded-xl
+                                                bg-gray-900
+                                                px-4
+                                                text-xs
+                                                font-medium
+                                                text-white
+                                                hover:bg-gray-800
+                                                disabled:cursor-not-allowed
+                                                disabled:opacity-50
+                                            "
+                                        >
+                                            {savingName
+                                                ? "Saving..."
+                                                : "Save"}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setName(profile.name || "");
+                                                setEditingName(false);
+                                            }}
+                                            disabled={savingName}
+                                            className="
+                                                h-10
+                                                rounded-xl
+                                                border
+                                                border-gray-300
+                                                px-4
+                                                text-xs
+                                                font-medium
+                                                text-gray-700
+                                                hover:bg-gray-50
+                                                disabled:opacity-50
+                                            "
+                                        >
+                                            Cancel
+                                        </button>
+
+                                    </div>
+
+                                ) : (
+
+                                    <p className="
+                                        mt-1
+                                        text-sm
+                                        font-medium
+                                        text-gray-900
+                                    ">
+                                        {profile.name}
+                                    </p>
+
+                                )}
 
                             </div>
 
@@ -486,6 +808,7 @@ const Profile = () => {
                 border-gray-200
                 bg-white
             ">
+
 
                 {profileActions.map(
                     ({

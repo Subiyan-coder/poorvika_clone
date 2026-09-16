@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState, Fragment } from "react";
 
 import {
-    History,
     ChevronDown,
     ChevronUp
 } from "lucide-react";
@@ -14,6 +13,7 @@ import {
     getAdminInventoryTransactions
 } from "../../services/admin/AdminInventoryTransactionService";
 import { getAdmins } from "../../services/accountService";
+
 
 
 const AdminInventoryTransactions = () => {
@@ -535,25 +535,6 @@ const AdminInventoryTransactions = () => {
                     items-center
                     gap-3
                 ">
-
-                    <div className="
-                        flex
-                        h-10
-                        w-10
-                        items-center
-                        justify-center
-                        rounded-xl
-                        bg-gray-900
-                        text-white
-                    ">
-
-                        <History
-                            size={20}
-                        />
-
-                    </div>
-
-
                     <div>
 
                         <h1 className="
@@ -760,7 +741,7 @@ const AdminInventoryTransactions = () => {
                                 key={admin._id}
                                 value={admin._id}
                             >
-                                {admin.name}
+                                {admin.adminId}-{admin.name}
                             </option>
 
                         ))}
@@ -1024,17 +1005,22 @@ const AdminInventoryTransactions = () => {
 
                                                         <div>
 
-                                                            <p className="
-                                                                font-medium
-                                                                text-gray-900
-                                                            ">
-                                                                {
-                                                                    transaction
-                                                                        .performedBy
-                                                                        ?.name ||
-                                                                    "-"
-                                                                }
-                                                            </p>
+                                                            <div>
+                                                                <p className="
+                                                                    text-sm
+                                                                    font-medium
+                                                                    text-gray-900
+                                                                ">
+                                                                    {transaction.performedBy?.adminId || "-"}
+                                                                </p>
+
+                                                                <p className="
+                                                                    text-xs
+                                                                    text-gray-500
+                                                                ">
+                                                                    {transaction.performedBy?.name || "Unknown"}
+                                                                </p>
+                                                            </div>
 
                                                             <p className="
                                                                 mt-1

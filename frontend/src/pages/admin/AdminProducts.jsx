@@ -836,7 +836,7 @@ const AdminProducts = () => {
                                 <tr>
 
                                     <td
-                                        colSpan="7"
+                                        colSpan="6"
                                         className="
                                             px-6
                                             py-12
@@ -855,7 +855,7 @@ const AdminProducts = () => {
                                 <tr>
 
                                     <td
-                                        colSpan="7"
+                                        colSpan="6"
                                         className="
                                             px-6
                                             py-12
@@ -961,17 +961,6 @@ const AdminProducts = () => {
                                                             text-gray-900
                                                         ">
                                                             {product.name}
-                                                        </p>
-
-                                                        <p className="
-                                                            mt-0.5
-                                                            text-xs
-                                                            text-gray-500
-                                                        ">
-                                                            {product.primarySpecification?.name}
-                                                            {product.primarySpecification?.value
-                                                                ? `: ${product.primarySpecification.value}`
-                                                                : ""}
                                                         </p>
 
                                                     </div>
@@ -1165,7 +1154,7 @@ const AdminProducts = () => {
 
                                         <tr>
                                                 <td
-                                                    colSpan={8}
+                                                    colSpan={6}
                                                     className="
                                                         px-6
                                                         pb-4

@@ -27,11 +27,6 @@ const createProductRules = [
         .withMessage("Brand is required")
         .isLength({ max: 100 })
         .withMessage("Brand cannot exceed 100 characters"),
-    
-    body("primarySpecification")
-        .optional()
-        .isObject()
-        .withMessage("primarySpecification must be an object"),
 
     body("specification")
         .optional()
@@ -68,11 +63,7 @@ const updateProductRules = [
         .withMessage("Brand cannot be empty")
         .isLength({ max: 100 })
         .withMessage("Brand cannot exceed 100 characters"),
-
-    body("primarySpecification")
-        .optional()
-        .isObject()
-        .withMessage("primarySpecification must be an object"),
+        
 
     body("specification")
         .optional()

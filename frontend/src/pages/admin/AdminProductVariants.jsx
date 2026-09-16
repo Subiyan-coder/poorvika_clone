@@ -885,12 +885,21 @@ const AdminProductVariants = () => {
 
             <div className="
                 admin-card
+                w-full
+                min-w-0
                 overflow-hidden
             ">
 
-                <div className="overflow-x-auto">
-
-                    <table className="admin-table">
+                <div className="
+                    w-full
+                    min-w-0
+                    overflow-x-auto
+                ">
+                    <table className="
+                        admin-table
+                        w-full
+                        table-fixed
+                    ">
 
                         <thead className="
                             border-b
@@ -907,6 +916,14 @@ const AdminProductVariants = () => {
 
                                 <th className="admin-table-header">
                                     Color
+                                </th>
+
+                                <th className="admin-table-header">
+                                    Primary
+                                </th>
+
+                                <th className="admin-table-header">
+                                    Secondary
                                 </th>
 
                                 <th className="admin-table-header">
@@ -931,6 +948,7 @@ const AdminProductVariants = () => {
 
                                 <th className="
                                     admin-table-header
+                                    w-[8%]
                                     text-right
                                 ">
                                     Actions
@@ -951,7 +969,7 @@ const AdminProductVariants = () => {
                                 <tr>
 
                                     <td
-                                        colSpan="8"
+                                        colSpan="10"
                                         className="
                                             px-6
                                             py-12
@@ -970,7 +988,7 @@ const AdminProductVariants = () => {
                                 <tr>
 
                                     <td
-                                        colSpan="8"
+                                        colSpan="10"
                                         className="
                                             px-6
                                             py-12
@@ -1037,7 +1055,7 @@ const AdminProductVariants = () => {
                                                     <div className="min-w-0">
 
                                                         <p className="
-                                                            max-w-[240px]
+                                                            max-w-full
                                                             truncate
                                                             text-sm
                                                             font-medium
@@ -1066,6 +1084,22 @@ const AdminProductVariants = () => {
 
                                                 <td className="admin-table-cell">
                                                     {variant.color}
+                                                </td>
+
+                                                <td className="admin-table-cell">
+                                                    <span className="block truncate">
+                                                        {variant.primarySpecification
+                                                            ? `${variant.primarySpecification.name}: ${variant.primarySpecification.value}`
+                                                            : "-"}
+                                                    </span>
+                                                </td>
+
+                                                <td className="admin-table-cell">
+                                                    <span className="block truncate">
+                                                        {variant.secondarySpecification?.name
+                                                            ? `${variant.secondarySpecification.name}: ${variant.secondarySpecification.value}`
+                                                            : "-"}
+                                                    </span>
                                                 </td>
 
                                                 {/* Price */}
@@ -1176,8 +1210,9 @@ const AdminProductVariants = () => {
                                                     <div className="
                                                         flex
                                                         items-center
-                                                        justify-end
-                                                        gap-4
+                                                        justify-center
+                                                        gap-1
+                                                        whitespace-nowrap
                                                     ">
 
                                                         <button
@@ -1189,8 +1224,11 @@ const AdminProductVariants = () => {
                                                             }
                                                             className="
                                                                 admin-button-ghost
-                                                                px-2
+                                                                px-1
                                                                 py-1
+                                                                whitespace-nowrap
+                                                                min-w-0
+
                                                             "
                                                         >
                                                             Edit
@@ -1298,7 +1336,7 @@ const AdminProductVariants = () => {
                                             </tr>
                                             <tr>
                                                 <td
-                                                    colSpan={8}
+                                                    colSpan={10}
                                                     className="
                                                         px-6
                                                         pb-4

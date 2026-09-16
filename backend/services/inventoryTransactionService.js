@@ -153,7 +153,14 @@ const getAllInventoryTransactions = async ({
             await User.find(
                 {
                     role: "ADMIN",
-                    name: searchRegex
+                    $or: [
+                        {
+                            name: searchRegex
+                        },
+                        {
+                            adminId: searchRegex
+                        }
+                    ]
                 },
                 {
                     _id: 1
@@ -314,7 +321,7 @@ const getAllInventoryTransactions = async ({
             .populate({
                 path: "performedBy",
                 select:
-                    "name email role"
+                    "name adminId email role"
             })
 
             .populate({

@@ -49,6 +49,11 @@ const createPayment = async (
         status: "PENDING"
     });
 
+    if (method === "COD") {
+        order.status = "CONFIRMED";
+        await order.save();
+    }
+
 
     return payment;
 };

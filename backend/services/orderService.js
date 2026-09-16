@@ -658,8 +658,7 @@ const cancelOrder = async (
             if (
                 ![
                     "PENDING",
-                    "CONFIRMED",
-                    "PROCESSING"
+                    "CONFIRMED"
                 ].includes(order.status)
             ) {
                 const error = new Error(

@@ -124,7 +124,8 @@ const getAdmins = async () => {
         },
         {
             name: 1,
-            email: 1
+            email: 1,
+            adminId: 1
         }
     )
     .sort({
@@ -138,7 +139,7 @@ const getCurrentUser = async (userId) => {
 
     const user = await User.findById(userId)
         .select(
-            "_id name email phone role profileImage isVerified isActive"
+            "_id name email phone role adminId profileImage isVerified isActive"
         )
         .lean();
 

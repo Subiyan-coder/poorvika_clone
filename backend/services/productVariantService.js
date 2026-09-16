@@ -12,6 +12,8 @@ const createProductVariant = async ({
     price,
     discountPercentage = 0,
     color,
+    primarySpecification,
+    secondarySpecification,
     attributes,
     images
 }) => {
@@ -96,8 +98,11 @@ const createProductVariant = async ({
 
     const sku = [
         product.sku,
-        color
+        color,
+        primarySpecification?.value,
+        secondarySpecification?.value
     ]
+        .filter(Boolean)
         .map(value =>
             String(value)
                 .trim()
@@ -136,6 +141,8 @@ const createProductVariant = async ({
         discountPercentage: numericDiscountPercentage,
         discountPrice,
         color: String(color).trim(),
+        primarySpecification,
+        secondarySpecification,
         attributes,
         images
 
@@ -184,7 +191,7 @@ const getAllProductVariants = async (productId) => {
     })
         .populate(
             "productId",
-            "name slug brand primarySpecification secondarySpecification specification"
+            "name slug brand specification"
         )
         .sort({
             createdAt: -1
@@ -232,7 +239,7 @@ const getOneProductVariant = async (variantId) => {
     })
         .populate(
             "productId",
-            "name slug brand primarySpecification secondarySpecification specification"
+            "name slug brand specification"
         )
         .lean();
 
@@ -483,6 +490,8 @@ const updateProductVariant = async (
         price,
         discountPercentage,
         color,
+        primarySpecification,
+        secondarySpecification,
         attributes,
         images
     }
@@ -531,6 +540,15 @@ const updateProductVariant = async (
             ? String(color).trim()
             : variant.color;
 
+    const finalPrimarySpecification =
+        primarySpecification !== undefined
+            ? primarySpecification
+            : variant.primarySpecification;
+
+    const finalSecondarySpecification =
+        secondarySpecification !== undefined
+            ? secondarySpecification
+            : variant.secondarySpecification;
 
     // Price validation
 
@@ -585,8 +603,11 @@ const updateProductVariant = async (
 
     const generatedSku = [
         product.sku,
-        finalColor
+        finalColor,
+        finalPrimarySpecification?.value,
+        finalSecondarySpecification?.value
     ]
+        .filter(Boolean)
         .map(value =>
             String(value)
                 .trim()
@@ -607,7 +628,7 @@ const updateProductVariant = async (
 
         if (existingVariant) {
             const error = new Error(
-                "A variant with the same product and color already exists"
+                "A variant with the same product, color and specifications already exists"
             );
             error.statusCode = 409;
             throw error;
@@ -628,6 +649,12 @@ const updateProductVariant = async (
         discountPrice;
 
     variant.color = finalColor;
+
+    variant.primarySpecification =
+        finalPrimarySpecification;
+
+    variant.secondarySpecification =
+        finalSecondarySpecification;
 
 
     if (attributes !== undefined) {

@@ -60,32 +60,6 @@ const productSchema = new mongoose.Schema(
             }
         ],
 
-        primarySpecification : {
-            name : {
-                type : String,
-                required : true,
-                trim : true
-            },
-
-            value : {
-                type : String,
-                required : true,
-                trim : true
-            }
-        },
-
-        secondarySpecification : {
-            name : {
-                type : String,
-                trim : true
-            },
-
-            value : {
-                type : String,
-                trim : true
-            }
-        },
-
         specification : {
             type : Map,
             of : String

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import OtpInput from "../components/OtpInput";
 
@@ -12,6 +13,8 @@ import {
 import {
     toastSuccess
 } from "../utils/toast";
+
+import { ArrowLeft } from "lucide-react";
 
 
 const Account = () => {
@@ -29,6 +32,8 @@ const Account = () => {
     const [resending, setResending] = useState(false);
 
     const [resendTimer, setResendTimer] = useState(60);
+
+    const navigate = useNavigate();
 
 
     /* =========================
@@ -344,6 +349,26 @@ const Account = () => {
             ">
 
                 <div className="mb-8">
+
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="
+                            mb-6
+                            flex
+                            items-center
+                            gap-2
+                            text-sm
+                            font-medium
+                            text-gray-600
+                            transition
+                            hover:text-gray-900
+                        "
+                    >
+                        <ArrowLeft size={18} />
+                        Back
+                    </button>
+
 
                     <h1 className="
                         text-3xl

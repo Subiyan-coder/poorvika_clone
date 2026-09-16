@@ -13,8 +13,6 @@ const createProduct = async (
         name,
         description,
         brand,
-        primarySpecification,
-        secondarySpecification,
         specification
     }
 ) => {
@@ -34,22 +32,12 @@ const createProduct = async (
         throw error;
     }
 
-    const slugParts = [
-        name,
-        primarySpecification.value,
-        secondarySpecification?.value
-    ];
-
-    const slug = slugParts
-        .filter(value => value)
-        .map(value =>
-            String(value)
-                .trim()
-                .toUpperCase()
-                .replace(/[^A-Z0-9]+/g, "-")
-                .replace(/^-+|-+$/g, "")
-        )
-        .join("-");
+    const slug = String(name)
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    
 
     const existingProduct = await Product.findOne({
         $or : [
@@ -72,9 +60,7 @@ const createProduct = async (
     const skuParts = [
         category.sku,
         brand,
-        name,
-        primarySpecification.value,
-        secondarySpecification?.value
+        name
     ];
 
 
@@ -112,8 +98,6 @@ const createProduct = async (
         sku,
         description,
         brand,
-        primarySpecification,
-        secondarySpecification,
         specification
     });
 
@@ -340,8 +324,6 @@ const updateProduct = async (
         name,
         description,
         brand,
-        primarySpecification,
-        secondarySpecification,
         specification
     }
 ) => {
@@ -430,6 +412,26 @@ const updateProduct = async (
         }
 
         product.name = name;
+
+        product.slug = String(product.name)
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+        
+
+        const existingSlug = await Product.findOne(product.slug);
+
+        if (existingSlug) {
+
+            const error = new Error(
+                "A product with this slug already exists"
+            );
+
+            error.statusCode = 409;
+            throw error;
+        }
+
     }
 
 
@@ -447,21 +449,6 @@ const updateProduct = async (
     }
 
 
-    // Primary specification
-
-    if (primarySpecification !== undefined) {
-        product.primarySpecification =
-            primarySpecification;
-    }
-
-
-    // Secondary specification
-
-    if (secondarySpecification !== undefined) {
-        product.secondarySpecification =
-            secondarySpecification;
-    }
-
 
     // Full specifications
 
@@ -476,10 +463,7 @@ const updateProduct = async (
     const skuParts = [
         category.sku,
         product.brand,
-        product.name,
-        product.primarySpecification?.value,
-        product.secondarySpecification?.value
-
+        product.name
     ];
 
 

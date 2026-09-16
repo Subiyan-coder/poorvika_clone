@@ -31,12 +31,7 @@ const ProductForm = ({
             categoryId: "",
             name: "",
             brand: "",
-            description: "",
-            primarySpecificationName: "",
-            primarySpecificationValue: "",
-
-            secondarySpecificationName: "",
-            secondarySpecificationValue: ""
+            description: ""
         }
     });
 
@@ -57,19 +52,7 @@ const ProductForm = ({
                     initialData.brand || "",
 
                 description:
-                    initialData.description || "",
-                
-                primarySpecificationName:
-                    initialData.primarySpecification?.name || "",
-
-                primarySpecificationValue:
-                    initialData.primarySpecification?.value || "",
-
-                secondarySpecificationName:
-                    initialData.secondarySpecification?.name || "",
-
-                secondarySpecificationValue:
-                    initialData.secondarySpecification?.value || ""
+                    initialData.description || ""
             });
             
             setSpecification(
@@ -87,13 +70,7 @@ const ProductForm = ({
                 categoryId: "",
                 name: "",
                 brand: "",
-                description: "",
-
-                primarySpecificationName: "",
-                primarySpecificationValue: "",
-
-                secondarySpecificationName: "",
-                secondarySpecificationValue: ""
+                description: ""
             });
 
             setSpecification({});
@@ -138,16 +115,6 @@ const ProductForm = ({
                 name: data.name.trim(),
                 brand: data.brand.trim(),
                 description: data.description.trim(),
-
-                primarySpecification: {
-                    name: data.primarySpecificationName.trim(),
-                    value: data.primarySpecificationValue.trim()
-                },
-
-                secondarySpecification: {
-                    name: data.secondarySpecificationName?.trim() || "",
-                    value: data.secondarySpecificationValue?.trim() || ""
-                },
                 
                 specification: cleanSpecification
             },
@@ -346,76 +313,6 @@ const ProductForm = ({
                     </p>
 
                 )}
-
-            </div>
-
-
-            {/* Primary Specification */}
-
-            <div className="space-y-3">
-
-                <p className="text-sm font-medium text-gray-700">
-                    Primary Specification
-                </p>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-
-                    <FormInput
-                        id="primarySpecificationName"
-                        name="primarySpecificationName"
-                        label="Name"
-                        placeholder="e.g. Battery"
-                        register={register}
-                        error={errors.primarySpecificationName}
-                        disabled={loading}
-                    />
-
-                    <FormInput
-                        id="primarySpecificationValue"
-                        name="primarySpecificationValue"
-                        label="Value"
-                        placeholder="e.g. 4000mAh"
-                        register={register}
-                        error={errors.primarySpecificationValue}
-                        disabled={loading}
-                    />
-
-                </div>
-
-            </div>
-
-
-            {/* Secondary Specification */}
-
-            <div className="space-y-3">
-
-                <p className="text-sm font-medium text-gray-700">
-                    Secondary Specification
-                </p>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-
-                    <FormInput
-                        id="secondarySpecificationName"
-                        name="secondarySpecificationName"
-                        label="Name"
-                        placeholder="e.g. Display"
-                        register={register}
-                        error={errors.secondarySpecificationName}
-                        disabled={loading}
-                    />
-
-                    <FormInput
-                        id="secondarySpecificationValue"
-                        name="secondarySpecificationValue"
-                        label="Value"
-                        placeholder="e.g. 6.2 inch"
-                        register={register}
-                        error={errors.secondarySpecificationValue}
-                        disabled={loading}
-                    />
-
-                </div>
 
             </div>
 

@@ -175,7 +175,7 @@ const ImageUploader = ({
 
                             <img
                                 src={image.url}
-                                alt="Product"
+                                alt="image"
                                 className="
                                     h-32
                                     w-full

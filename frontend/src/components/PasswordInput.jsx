@@ -72,7 +72,7 @@ const PasswordInput = (
                     className={`
                         h-12
                         w-full
-                        rounded-x1
+                        rounded-xl
                         border
                         bg-white
                         px-4

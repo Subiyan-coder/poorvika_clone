@@ -9,11 +9,11 @@ const getInventory = async (productVariantId) => {
     }).populate({
             path: "productVariantId",
             select:
-                "sku price discountPrice color attributes productId",
+                "sku price discountPrice color primarySpecification secondarySpecification attributes productId",
             populate: {
                 path: "productId",
                 select:
-                    "name slug sku brand categoryId primarySpecification secondarySpecification",
+                    "name slug sku brand categoryId ",
                 populate: {
                     path: "categoryId",
                     select: "name slug"
@@ -38,11 +38,11 @@ const getAllInventory = async () => {
         .populate({
             path: "productVariantId",
             select:
-                "sku price discountPrice color attributes productId",
+                "sku price discountPrice color primarySpecification secondarySpecification attributes productId",
             populate: {
                 path: "productId",
                 select:
-                    "name slug sku brand categoryId primarySpecification secondarySpecification",
+                    "name slug sku brand categoryId ",
                 populate: {
                     path: "categoryId",
                     select: "name slug"

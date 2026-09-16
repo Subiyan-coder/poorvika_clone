@@ -2,6 +2,8 @@ const { connectDB } = require("./config/db");
 const { config } = require("./config/env");
 const { hashPassword } = require("./services/passwordService");
 const User = require("./models/user");
+const { generateAdminId } = require("./utils/adminId");
+
 
 const createAdmin = async () => {
 
@@ -28,12 +30,17 @@ const createAdmin = async () => {
             config.admin.adminPassword
         );
 
+        const adminId = await generateAdminId();
 
         const admin = await User.create({
+
+            adminId,
 
             name: config.admin.adminName,
 
             email: config.admin.adminEmail,
+
+            phone: config.admin.adminPhone,
 
             password: passwordHash,
 
@@ -47,7 +54,7 @@ const createAdmin = async () => {
 
 
         console.log(
-            `Admin account created successfully: ${admin.email}`
+            `Admin account created successfully: ${admin.adminId}-${admin.email}`
         );
 
         process.exit(0);

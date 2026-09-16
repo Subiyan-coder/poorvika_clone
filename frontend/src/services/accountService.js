@@ -26,7 +26,7 @@ export const requestEmailChangeOtp = async (
     const response = await api.post(
         "/account/email/request-otp",
         {
-            email
+            newEmail: email
         }
     );
 
@@ -46,7 +46,7 @@ export const changeEmail = async (
     const response = await api.patch(
         "/account/email",
         {
-            email,
+            newEmail: email,
             otp
         }
     );
@@ -66,7 +66,7 @@ export const requestPhoneChangeOtp = async (
     const response = await api.post(
         "/account/phone/request-otp",
         {
-            phone
+            newPhone: phone
         }
     );
 
@@ -86,7 +86,7 @@ export const changePhone = async (
     const response = await api.patch(
         "/account/phone",
         {
-            phone,
+            newPhone: phone,
             otp
         }
     );

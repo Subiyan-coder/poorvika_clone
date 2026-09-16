@@ -9,7 +9,10 @@ import {
 import AdminModal from "../../components/admin/common/AdminModal";
 import AdminStatCard from "../../components/admin/common/AdminStatCard";
 
-import { toast } from "react-hot-toast";
+import {
+    toastSuccess,
+    toastError
+} from "../../utils/toast";
 
 
 const AdminInventory = () => {
@@ -726,35 +729,6 @@ const AdminInventory = () => {
                                                 </p>
 
 
-                                                {/* Specifications */}
-
-                                                <div className="
-                                                    mt-3
-                                                    space-y-1
-                                                    text-sm
-                                                    text-gray-600
-                                                ">
-
-                                                    <p>
-                                                        {product.primarySpecification?.name
-                                                            || "-"}
-                                                        {" : "}
-                                                        {product.primarySpecification?.value
-                                                            || "-"}
-                                                    </p>
-
-
-                                                    <p>
-                                                        {product.secondarySpecification?.name
-                                                            || "-"}
-                                                        {" : "}
-                                                        {product.secondarySpecification?.value
-                                                            || "-"}
-                                                    </p>
-
-                                                </div>
-
-
                                                 {/* Inventory summary */}
 
                                                 <div className="
@@ -861,6 +835,14 @@ const AdminInventory = () => {
                                                         </th>
 
                                                         <th className="admin-table-header">
+                                                            Primary
+                                                        </th>
+
+                                                        <th className="admin-table-header">
+                                                            Secondary
+                                                        </th>
+
+                                                        <th className="admin-table-header">
                                                             Price
                                                         </th>
 
@@ -917,6 +899,18 @@ const AdminInventory = () => {
 
                                                                         <td className="admin-table-cell whitespace-nowrap">
                                                                             {variant.color || "—"}
+                                                                        </td>
+
+                                                                        <td className="admin-table-cell whitespace-nowrap">
+                                                                            {variant.primarySpecification
+                                                                                ? `${variant.primarySpecification.name}: ${variant.primarySpecification.value}`
+                                                                                : "—"}
+                                                                        </td>
+
+                                                                        <td className="admin-table-cell whitespace-nowrap">
+                                                                            {variant.secondarySpecification?.name
+                                                                                ? `${variant.secondarySpecification.name}: ${variant.secondarySpecification.value}`
+                                                                                : "—"}
                                                                         </td>
 
                                                                         <td className="admin-table-cell whitespace-nowrap">
@@ -1101,11 +1095,46 @@ const AdminInventory = () => {
                                         {
                                             selectedVariant
                                                 .productVariantId
-                                                ?.color
-                                                ?.name ||
-                                            "—"
+                                                ?.color || "—"
                                         }
                                     </p>
+
+                                    <div>
+                                        <p className="text-gray-500">
+                                            Primary
+                                        </p>
+
+                                        <p className="
+                                            mt-1
+                                            font-medium
+                                            text-gray-900
+                                        ">
+                                            {selectedVariant.productVariantId
+                                                ?.primarySpecification?.name || "—"}
+                                            {": "}
+                                            {selectedVariant.productVariantId
+                                                ?.primarySpecification?.value || "—"}
+                                        </p>
+                                    </div>
+
+
+                                    <div>
+                                        <p className="text-gray-500">
+                                            Secondary
+                                        </p>
+
+                                        <p className="
+                                            mt-1
+                                            font-medium
+                                            text-gray-900
+                                        ">
+                                            {selectedVariant.productVariantId
+                                                ?.secondarySpecification?.name || "—"}
+                                            {": "}
+                                            {selectedVariant.productVariantId
+                                                ?.secondarySpecification?.value || "—"}
+                                        </p>
+                                    </div>
 
                                 </div>
 

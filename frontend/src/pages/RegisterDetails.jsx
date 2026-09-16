@@ -18,8 +18,11 @@ import FormInput from "../components/FormInput";
 import PasswordInput from "../components/PasswordInput";
 
 import {
-    register as registerUser
+    register as registerUser,
+    getCurrentUser
 } from "../services/authService";
+
+import { useAuth } from "../context/useAuth";
 
 import { useState } from "react";
 
@@ -37,6 +40,7 @@ const RegisterDetails = () => {
     const [serverError, setServerError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const { setUser } = useAuth();
 
     const {
         register,
@@ -127,6 +131,11 @@ const RegisterDetails = () => {
                 verifiedType: type
             });
 
+            const response = await getCurrentUser();
+
+            setUser(
+                response.data?.user || null
+            );
 
             navigate("/");
 

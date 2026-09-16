@@ -37,7 +37,8 @@ const config = {
     admin : {
         adminName : process.env.ADMIN_NAME,
         adminEmail : process.env.ADMIN_EMAIL,
-        adminPassword : process.env.ADMIN_PASSWORD
+        adminPassword : process.env.ADMIN_PASSWORD,
+        adminPhone : process.env.ADMIN_PHONE
     }
 };
 
