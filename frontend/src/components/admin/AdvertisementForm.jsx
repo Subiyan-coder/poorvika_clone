@@ -12,6 +12,9 @@ import {
     updateAdvertisement
 } from "../../services/advertisementService";
 
+import ProductVariantSelector
+    from "./ProductVariantSelector";
+
 
 
 // =========================
@@ -40,6 +43,8 @@ const AdvertisementForm = ({
         register,
         handleSubmit,
         reset,
+        watch,
+        setValue,
         formState: {
             errors
         }
@@ -48,6 +53,8 @@ const AdvertisementForm = ({
             title: "",
             link: "",
             placement: "LOGIN",
+            section: "",
+            productVariantId: "",
             status: "INACTIVE",
             startDate: "",
             endDate: "",
@@ -68,6 +75,8 @@ const AdvertisementForm = ({
                 title: "",
                 link: "",
                 placement: "LOGIN",
+                section: "",
+                productVariantId: "",
                 status: "INACTIVE",
                 startDate: "",
                 endDate: "",
@@ -90,6 +99,13 @@ const AdvertisementForm = ({
 
             placement:
                 advertisement.placement || "LOGIN",
+
+            section:
+                advertisement.section || "",
+
+            productVariantId:
+                advertisement.productVariantId?._id ||
+                advertisement.productVariantId || "",
 
             status:
                 advertisement.status || "INACTIVE",
@@ -176,6 +192,16 @@ const AdvertisementForm = ({
 
                 placement:
                     data.placement,
+
+                section:
+                    data.placement === "HOME"
+                        ? data.section
+                        : null,
+
+                productVariantId:
+                    data.productVariantId?.trim()
+                        ? data.productVariantId.trim()
+                        : null,
 
                 status:
                     data.status,
@@ -369,6 +395,71 @@ const AdvertisementForm = ({
 
                 </div>
 
+                {watch("placement") === "HOME" && (
+                <div>
+                    <label
+                        htmlFor="section"
+                        className="
+                            mb-2
+                            block
+                            text-sm
+                            font-medium
+                            text-gray-700
+                        "
+                    >
+                        Home Section
+                    </label>
+
+                    <select
+                        id="section"
+                        {...register("section", {
+                            required: "Home section is required"
+                        })}
+                        disabled={loading}
+                        className="
+                            h-12
+                            w-full
+                            rounded-xl
+                            border
+                            border-gray-300
+                            bg-white
+                            px-4
+                            text-sm
+                            text-gray-900
+                            outline-none
+                            transition
+                            focus:border-gray-900
+                            focus:ring-2
+                            focus:ring-gray-100
+                            disabled:cursor-not-allowed
+                            disabled:bg-gray-100
+                        "
+                    >
+                        <option value="">
+                            Select section
+                        </option>
+
+                        <option value="HOME_HERO">
+                            Hero Advertisement
+                        </option>
+
+                        <option value="HOME_AUTO_SCROLL">
+                            Auto Scroll Advertisement
+                        </option>
+
+                        <option value="HOME_SEASON">
+                            Seasonal Advertisement
+                        </option>
+                    </select>
+
+                    {errors.section && (
+                        <p className="mt-1 text-sm text-red-600">
+                            {errors.section.message}
+                        </p>
+                    )}
+                </div>
+            )}
+
 
                 {/* Status */}
 
@@ -424,6 +515,19 @@ const AdvertisementForm = ({
                 </div>
 
             </div>
+
+            {/* Product Variant */}
+
+            <ProductVariantSelector
+                value={watch("productVariantId")}
+                onChange={(variantId) => {
+                    setValue(
+                        "productVariantId",
+                        variantId
+                    );
+                }}
+                disabled={loading}
+            />
 
 
             {/* Dates */}

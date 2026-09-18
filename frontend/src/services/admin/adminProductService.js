@@ -140,3 +140,24 @@ export const deleteProductImage = async (
 
     return response.data;
 };
+
+
+export const getProductsForSelector = async ({
+    categoryId,
+    search = "",
+    limit = 10
+}) => {
+
+    const response = await api.get(
+        "/products/selector",
+        {
+            params: {
+                categoryId,
+                search,
+                limit
+            }
+        }
+    );
+
+    return response.data;
+};

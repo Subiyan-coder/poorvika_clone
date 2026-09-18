@@ -3,7 +3,7 @@ const Product = require("../models/product");
 const Inventory = require("../models/inventory");
 const { uploadImage, deleteImage } = require("./cloudinaryService"); 
 
-const createCategory = async ( { name, description, file } ) => {
+const createCategory = async ( { heading, name, file } ) => {
 
     const slug = name;
 
@@ -36,10 +36,10 @@ const createCategory = async ( { name, description, file } ) => {
 
     const category = await Category.create(
         {
+            heading,
             name,
             slug,
             sku : slug,
-            description,
             images : {
                 url : uploadedImage.url,
                 publicId : uploadedImage.publicId
@@ -85,8 +85,8 @@ const getOneCategory = async( categoryId ) => {
 const updateCategory = async (
     categoryId,
     {
+        heading,
         name,
-        description,
         file
     }
 ) => {
@@ -113,11 +113,33 @@ const updateCategory = async (
             throw error;
         }
 
+        const newSlug = String(name)
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "");
+
+        const existingSlug = await Category.findOne({
+            slug: newSlug,
+            _id: { $ne: categoryId }
+        });
+
+        if (existingSlug) {
+            const error = new Error(
+                "A category with this slug already exists"
+            );
+
+            error.statusCode = 409;
+            throw error;
+        }
+
         category.name = name;
+        category.slug = newSlug;
+        category.sku = newSlug.toUpperCase();
     };
 
-    if (description !== undefined) {
-        category.description = description;
+    if (heading !== undefined) {
+        category.heading = heading;
     }
 
     if (file) {

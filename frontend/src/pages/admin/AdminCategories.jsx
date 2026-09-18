@@ -114,6 +114,10 @@ const AdminCategories = () => {
 
             await createCategory(formData);
 
+            toastSuccess(
+                "Category created successfully"
+            );
+
             setShowForm(false);
 
             setEditingCategory(null);
@@ -154,7 +158,7 @@ const AdminCategories = () => {
             setEditingCategory(null);
 
             toastSuccess(
-                "Category created successfully" 
+                "Category updated successfully" 
             );
 
             await fetchCategories();
@@ -320,21 +324,9 @@ const AdminCategories = () => {
     };
 
 
-    const handleSearch = (event) => {
+    const handleSearch = (value) => {
 
-        setSearch(event.target.value);
-
-        setPagination((current) => ({
-            ...current,
-            page: 1
-        }));
-
-    };
-
-
-    const handleStatusChangeFilter = (event) => {
-
-        setStatus(event.target.value);
+        setSearch(value);
 
         setPagination((current) => ({
             ...current,
@@ -344,9 +336,21 @@ const AdminCategories = () => {
     };
 
 
-    const handleSortChange = (event) => {
+    const handleStatusChangeFilter = (value) => {
 
-        setSort(event.target.value);
+        setStatus(value);
+
+        setPagination((current) => ({
+            ...current,
+            page: 1
+        }));
+
+    };
+
+
+    const handleSortChange = (value) => {
+
+        setSort(value);
 
         setPagination((current) => ({
             ...current,
@@ -512,6 +516,10 @@ const AdminCategories = () => {
                                 </th>
 
                                 <th className="admin-table-header">
+                                    Heading
+                                </th>
+
+                                <th className="admin-table-header">
                                     SKU
                                 </th>
 
@@ -521,10 +529,6 @@ const AdminCategories = () => {
 
                                 <th className="admin-table-header">
                                     Status
-                                </th>
-
-                                <th className="admin-table-header">
-                                    Created
                                 </th>
 
                                 <th className="admin-table-header text-right">
@@ -632,6 +636,9 @@ const AdminCategories = () => {
 
                                             </td>
 
+                                            <td className="admin-table-cell">
+                                                {category.heading}
+                                            </td>
 
                                             <td className="admin-table-cell">
                                                 {category.sku}
@@ -676,19 +683,7 @@ const AdminCategories = () => {
 
                                                     </button>
 
-                                                </td>
-
-
-                                            <td className="
-                                                admin-table-cell
-                                                text-sm
-                                                text-gray-500
-                                            ">
-                                                {new Date(
-                                                    category.createdAt
-                                                ).toLocaleDateString()}
                                             </td>
-
 
                                             <td className="admin-table-cell">
 
@@ -788,7 +783,7 @@ const AdminCategories = () => {
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => {
-                                                                            handleDelete(category._id);
+                                                                            handleDelete(category);
                                                                             setOpenMenuId(null);
                                                                         }}
                                                                         className="

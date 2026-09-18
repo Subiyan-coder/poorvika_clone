@@ -1,6 +1,7 @@
 import api from "./api";
 
 
+
 // =========================
 // Get All Advertisements
 // =========================
@@ -15,6 +16,7 @@ export const getAllAdvertisements = async () => {
 };
 
 
+
 // =========================
 // Create Advertisement
 // =========================
@@ -22,8 +24,10 @@ export const getAllAdvertisements = async () => {
 export const createAdvertisement = async ({
     title,
     image,
+    productVariantId,
     link,
     placement,
+    section,
     status,
     startDate,
     endDate,
@@ -35,6 +39,27 @@ export const createAdvertisement = async ({
     formData.append("title", title);
     formData.append("image", image);
     formData.append("placement", placement);
+
+    if (
+        productVariantId !== undefined &&
+        productVariantId !== null &&
+        productVariantId !== ""
+    ) {
+        formData.append(
+            "productVariantId",
+            productVariantId
+        );
+    }
+
+    if (
+        section !== undefined &&
+        section !== null
+    ) {
+        formData.append(
+            "section",
+            section
+        );
+    }
 
     if (link) {
         formData.append("link", link);
@@ -53,7 +78,10 @@ export const createAdvertisement = async ({
     }
 
     if (priority !== undefined) {
-        formData.append("priority", priority);
+        formData.append(
+            "priority",
+            priority
+        );
     }
 
     const response = await api.post(
@@ -65,6 +93,7 @@ export const createAdvertisement = async ({
 };
 
 
+
 // =========================
 // Update Advertisement
 // =========================
@@ -74,8 +103,10 @@ export const updateAdvertisement = async (
     {
         title,
         image,
+        productVariantId,
         link,
         placement,
+        section,
         status,
         startDate,
         endDate,
@@ -86,35 +117,73 @@ export const updateAdvertisement = async (
     const formData = new FormData();
 
     if (title !== undefined) {
-        formData.append("title", title);
+        formData.append(
+            "title",
+            title
+        );
     }
 
     if (image) {
-        formData.append("image", image);
+        formData.append(
+            "image",
+            image
+        );
+    }
+
+    if (productVariantId !== undefined) {
+        formData.append(
+            "productVariantId",
+            productVariantId || ""
+        );
     }
 
     if (link !== undefined) {
-        formData.append("link", link);
+        formData.append(
+            "link",
+            link
+        );
     }
 
     if (placement !== undefined) {
-        formData.append("placement", placement);
+        formData.append(
+            "placement",
+            placement
+        );
+    }
+
+    if (section !== undefined) {
+        formData.append(
+            "section",
+            section || ""
+        );
     }
 
     if (status !== undefined) {
-        formData.append("status", status);
+        formData.append(
+            "status",
+            status
+        );
     }
 
     if (startDate !== undefined) {
-        formData.append("startDate", startDate);
+        formData.append(
+            "startDate",
+            startDate
+        );
     }
 
     if (endDate !== undefined) {
-        formData.append("endDate", endDate);
+        formData.append(
+            "endDate",
+            endDate
+        );
     }
 
     if (priority !== undefined) {
-        formData.append("priority", priority);
+        formData.append(
+            "priority",
+            priority
+        );
     }
 
     const response = await api.patch(
@@ -124,6 +193,7 @@ export const updateAdvertisement = async (
 
     return response.data;
 };
+
 
 
 // =========================
@@ -142,19 +212,22 @@ export const deleteAdvertisement = async (
 };
 
 
+
 // =========================
 // Get Active Advertisements
 // =========================
 
 export const getActiveAdvertisements = async (
-    placement
+    placement,
+    section
 ) => {
 
     const response = await api.get(
         "/advertisements/active",
         {
             params: {
-                placement
+                placement,
+                section
             }
         }
     );

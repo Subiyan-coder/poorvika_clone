@@ -13,15 +13,16 @@ const {
 const createAdvertisement = async ({
     title,
     imageFile,
+    productVariantId,
     link,
     placement,
+    section,
     status,
     startDate,
     endDate,
     priority,
     createdBy
 }) => {
-
     if (!imageFile) {
 
         const error = new Error(
@@ -39,6 +40,21 @@ const createAdvertisement = async ({
         "poorvika/advertisements"
     );
 
+    if (placement === "HOME" && !section) {
+
+        const error = new Error(
+            "Section is required for HOME advertisements"
+        );
+
+        error.statusCode = 400;
+
+        throw error;
+    }
+
+    if (placement !== "HOME") {
+        section = null;
+    }
+
 
     try {
 
@@ -52,9 +68,13 @@ const createAdvertisement = async ({
                     publicId: image.publicId
                 },
 
+                productVariantId: productVariantId || null,
+
                 link: link || null,
 
                 placement,
+
+                section: section,
 
                 status: status || "INACTIVE",
 
@@ -77,9 +97,6 @@ const createAdvertisement = async ({
     }
     catch (error) {
 
-        // If MongoDB creation fails,
-        // remove the already uploaded image.
-
         await deleteImage(
             image.publicId
         );
@@ -90,9 +107,6 @@ const createAdvertisement = async ({
 };
 
 
-// =========================
-// Update Advertisement
-// =========================
 
 const updateAdvertisement = async (
     advertisementId,
@@ -100,7 +114,9 @@ const updateAdvertisement = async (
         title,
         imageFile,
         link,
+        productVariantId,
         placement,
+        section,
         status,
         startDate,
         endDate,
@@ -134,6 +150,12 @@ const updateAdvertisement = async (
         advertisement.title = title;
     }
 
+    if (productVariantId !== undefined) {
+        advertisement.productVariantId =
+            productVariantId || null;
+    }
+
+
 
     if (link !== undefined) {
         advertisement.link = link || null;
@@ -142,6 +164,28 @@ const updateAdvertisement = async (
 
     if (placement !== undefined) {
         advertisement.placement = placement;
+    }
+
+    if (section !== undefined) {
+        advertisement.section = section || null;
+    }
+
+    if (
+        advertisement.placement === "HOME" &&
+        !advertisement.section
+    ) {
+
+        const error = new Error(
+            "Section is required for HOME advertisements"
+        );
+
+        error.statusCode = 400;
+
+        throw error;
+    }
+
+    if (advertisement.placement !== "HOME") {
+        advertisement.section = null;
     }
 
 
@@ -171,9 +215,6 @@ const updateAdvertisement = async (
     let newImage = null;
 
 
-    // Replace image only when
-    // a new image was uploaded.
-
     if (imageFile) {
 
         newImage = await uploadImage(
@@ -196,8 +237,6 @@ const updateAdvertisement = async (
     }
     catch (error) {
 
-        // MongoDB update failed.
-        // Remove newly uploaded image.
 
         if (newImage) {
 
@@ -211,9 +250,6 @@ const updateAdvertisement = async (
     }
 
 
-    // Delete old Cloudinary image
-    // only after successful DB update.
-
     if (newImage && oldPublicId) {
 
         await deleteImage(
@@ -226,10 +262,6 @@ const updateAdvertisement = async (
     return advertisement;
 };
 
-
-// =========================
-// Delete Advertisement
-// =========================
 
 const deleteAdvertisement = async (
     advertisementId
@@ -270,69 +302,67 @@ const deleteAdvertisement = async (
 };
 
 
-// =========================
-// Get Active Advertisements
-// =========================
-
 const getActiveAdvertisements = async (
-    placement
+    placement,
+    section = null
 ) => {
 
     const now = new Date();
 
+    const filter = {
+
+        placement,
+
+        status: "ACTIVE",
+
+        $and: [
+
+            {
+                $or: [
+                    {
+                        startDate: null
+                    },
+                    {
+                        startDate: {
+                            $lte: now
+                        }
+                    }
+                ]
+            },
+
+            {
+                $or: [
+                    {
+                        endDate: null
+                    },
+                    {
+                        endDate: {
+                            $gte: now
+                        }
+                    }
+                ]
+            }
+
+        ]
+
+    };
+
+    if (section) {
+        filter.section = section;
+    }
 
     const advertisements =
-        await Advertisement.find({
-
-            placement,
-
-            status: "ACTIVE",
-
-            $and: [
-
-                {
-                    $or: [
-                        {
-                            startDate: null
-                        },
-                        {
-                            startDate: {
-                                $lte: now
-                            }
-                        }
-                    ]
-                },
-
-                {
-                    $or: [
-                        {
-                            endDate: null
-                        },
-                        {
-                            endDate: {
-                                $gte: now
-                            }
-                        }
-                    ]
-                }
-
-            ]
-
-        })
-        .sort({
-            priority: -1,
-            createdAt: -1
-        })
-        .lean();
-
+        await Advertisement.find(filter)
+            .sort({
+                priority: -1,
+                createdAt: -1
+            })
+            .lean();
 
     return advertisements;
 };
 
 
-// =========================
-// Get All Advertisements
-// =========================
 
 const getAllAdvertisements = async () => {
 

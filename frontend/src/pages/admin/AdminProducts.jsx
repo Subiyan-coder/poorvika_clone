@@ -1124,7 +1124,7 @@ const AdminProducts = () => {
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => {
-                                                                            handleDeleteProduct(product._id);
+                                                                            handleDeleteProduct(product);
                                                                             setOpenMenuId(null);
                                                                         }}
                                                                         className="

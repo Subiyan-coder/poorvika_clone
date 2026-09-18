@@ -10,7 +10,8 @@ const {
     remove,
     addImages,
     updateImage,
-    removeImage
+    removeImage,
+    getForSelector
 } = require("../controllers/productController");
 
 const {
@@ -46,6 +47,11 @@ router.get(
     authenticate,
     authorize("ADMIN"),
     getAllForAdmin
+);
+
+router.get(
+    "/selector",
+    getForSelector
 );
 
 // Customer single product

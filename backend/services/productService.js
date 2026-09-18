@@ -420,7 +420,10 @@ const updateProduct = async (
             .replace(/^-+|-+$/g, "");
         
 
-        const existingSlug = await Product.findOne(product.slug);
+        const existingSlug = await Product.findOne({
+            slug: product.slug,
+            _id: { $ne: productId }
+        });
 
         if (existingSlug) {
 
@@ -880,6 +883,58 @@ const updateProductImage = async (
     return product;
 };
 
+
+const getProductsForSelector = async ({
+    categoryId,
+    search = "",
+    limit = 10
+} = {}) => {
+
+    if (!categoryId) {
+        const error = new Error(
+            "Category is required"
+        );
+
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const filter = {
+        categoryId,
+        isActive: true
+    };
+
+    if (search.trim()) {
+
+        const searchTerm = search
+            .trim()
+            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+        filter.$or = [
+            {
+                name: {
+                    $regex: `^${searchTerm}`,
+                    $options: "i"
+                }
+            },
+            {
+                brand: {
+                    $regex: `^${searchTerm}`,
+                    $options: "i"
+                }
+            }
+        ];
+    }
+
+    return Product.find(filter)
+        .select("_id name brand images")
+        .sort({ name: 1 })
+        .limit(Number(limit))
+        .lean();
+};
+
+
+
 module.exports = {
     createProduct,
     getAllProducts,
@@ -890,5 +945,6 @@ module.exports = {
     deleteProduct,
     addProductImages,
     deleteProductImage,
-    updateProductImage
+    updateProductImage,
+    getProductsForSelector
 };

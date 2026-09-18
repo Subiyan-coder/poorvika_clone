@@ -1087,21 +1087,38 @@ const AdminProductVariants = () => {
                                                 </td>
 
                                                 <td className="admin-table-cell">
-                                                    <span className="block truncate">
-                                                        {variant.primarySpecification
-                                                            ? `${variant.primarySpecification.name}: ${variant.primarySpecification.value}`
-                                                            : "-"}
-                                                    </span>
+                                                    {variant.primarySpecification ? (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-medium text-gray-500">
+                                                                {variant.primarySpecification.name}
+                                                            </span>
+
+                                                            <span className="text-sm font-medium text-gray-900">
+                                                                {variant.primarySpecification.value}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        "-"
+                                                    )}
                                                 </td>
 
                                                 <td className="admin-table-cell">
-                                                    <span className="block truncate">
-                                                        {variant.secondarySpecification?.name
-                                                            ? `${variant.secondarySpecification.name}: ${variant.secondarySpecification.value}`
-                                                            : "-"}
-                                                    </span>
+                                                    {variant.secondarySpecification?.name ? (
+                                                        <div className="flex flex-col">
+                                                            <span className="text-xs font-medium text-gray-500">
+                                                                {variant.secondarySpecification.name}
+                                                            </span>
+
+                                                            <span className="text-sm font-medium text-gray-900">
+                                                                {variant.secondarySpecification.value}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        "-"
+                                                    )}
                                                 </td>
 
+                                                
                                                 {/* Price */}
 
                                                 <td className="admin-table-cell">

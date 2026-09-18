@@ -416,6 +416,19 @@ const Advertisement = () => {
                                         tracking-wider
                                         text-gray-500
                                     ">
+                                        Section
+                                    </th>
+
+                                    <th className="
+                                        px-6
+                                        py-3
+                                        text-left
+                                        text-xs
+                                        font-semibold
+                                        uppercase
+                                        tracking-wider
+                                        text-gray-500
+                                    ">
                                         Status
                                     </th>
 
@@ -603,6 +616,16 @@ const Advertisement = () => {
 
                                                 {advertisement.placement}
 
+                                            </td>
+
+                                            <td className="
+                                                whitespace-nowrap
+                                                px-6
+                                                py-4
+                                                text-sm
+                                                text-gray-600
+                                            ">
+                                                {advertisement.section || "-"}
                                             </td>
 
 

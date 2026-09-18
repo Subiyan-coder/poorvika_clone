@@ -17,8 +17,10 @@ const create = async (req, res, next) => {
 
                 title: req.body.title,
                 imageFile: req.file,
+                productVariantId: req.body.productVariantId,
                 link: req.body.link,
                 placement: req.body.placement,
+                section: req.body.section,
                 status: req.body.status,
                 startDate: req.body.startDate,
                 endDate: req.body.endDate,
@@ -62,8 +64,10 @@ const update = async (req, res, next) => {
                 {
                     title: req.body.title,
                     imageFile: req.file,
+                    productVariantId: req.body.productVariantId,
                     link: req.body.link,
                     placement: req.body.placement,
+                    section: req.body.section,
                     status: req.body.status,
                     startDate: req.body.startDate,
                     endDate: req.body.endDate,
@@ -154,7 +158,8 @@ const getActive = async (req, res, next) => {
 
         const result =
             await getActiveAdvertisements(
-                req.query.placement
+                req.query.placement,
+                req.query.section
             );
 
 

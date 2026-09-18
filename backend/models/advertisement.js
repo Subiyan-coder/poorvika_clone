@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 
 const advertisementSchema = new mongoose.Schema(
     {
-
         title: {
             type: String,
             required: true,
@@ -28,6 +27,25 @@ const advertisementSchema = new mongoose.Schema(
         },
 
 
+        productVariantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "ProductVariant",
+            default: null
+        },
+
+
+        section: {
+            type: String,
+            enum: [
+                "HOME_HERO",
+                "HOME_AUTO_SCROLL",
+                "HOME_SEASON"
+            ],
+            default: null,
+            index: true
+        },
+
+
         link: {
             type: String,
             default: null,
@@ -41,7 +59,6 @@ const advertisementSchema = new mongoose.Schema(
                 "LOGIN",
                 "HOME",
                 "PRODUCT"
-
             ],
             required: true,
             index: true
@@ -92,6 +109,7 @@ const advertisementSchema = new mongoose.Schema(
 
 advertisementSchema.index({
     placement: 1,
+    section: 1,
     status: 1,
     priority: -1
 });

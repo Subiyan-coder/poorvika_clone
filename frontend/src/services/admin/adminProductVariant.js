@@ -151,3 +151,15 @@ export const deleteProductVariantImage = async (
 
     return response.data;
 };
+
+
+export const getProductVariants = async (
+    productId
+) => {
+
+    const response = await api.get(
+        `/product-variants/product/${productId}`
+    );
+
+    return response.data;
+};

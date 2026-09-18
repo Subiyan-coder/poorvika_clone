@@ -8,7 +8,8 @@ const {
     deleteProduct,
     addProductImages,
     updateProductImage,
-    deleteProductImage
+    deleteProductImage,
+    getProductsForSelector 
 } = require("../services/productService");
 
 const { logger } = require("../utils/logger");
@@ -271,6 +272,30 @@ const removeImage = async (req, res, next) => {
 };
 
 
+const getForSelector = async (req, res, next) => {
+
+    try {
+
+        const products = await getProductsForSelector({
+            categoryId: req.query.categoryId,
+            search: req.query.search || "",
+            limit: Number(req.query.limit) || 10
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: products
+        });
+
+    }
+    catch (err) {
+
+        next(err);
+    }
+};
+
+
+
 module.exports = {
     create,
     getAll,
@@ -281,5 +306,6 @@ module.exports = {
     remove,
     addImages,
     updateImage,
-    removeImage
+    removeImage,
+    getForSelector
 };

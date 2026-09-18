@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 
 import Navbar from "../components/customer/Navbar";
+import Hoverbar from "../components/customer/Hoverbar";
 
 
 const CustomerLayout = () => {
@@ -9,6 +10,8 @@ const CustomerLayout = () => {
         <div className="min-h-screen">
 
             <Navbar />
+
+            <Hoverbar />
 
             <main>
                 <Outlet />

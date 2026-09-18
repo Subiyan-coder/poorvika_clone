@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ImageUploader from "../ImageUploader";
 
 const CategoryForm = ({
@@ -15,12 +15,25 @@ const CategoryForm = ({
     );
 
 
-    const [description, setDescription] = useState(
-        category?.description || ""
+    const [heading, setHeading] = useState(
+        category?.heading || ""
     );
 
     const [image, setImage] = useState(null);
 
+    const CATEGORY_HEADINGS = [
+        "Mobiles",
+        "Mobile Accessories",
+        "Computers", 
+        "Tablets",
+        "TV",
+        "Audio",
+        "Kitchen Appliances",
+        "Home Appliances",
+        "Smart Technology",
+        "Personal",
+        "Health Care"
+    ];
 
     const handleSubmit = (event) => {
 
@@ -28,11 +41,9 @@ const CategoryForm = ({
 
         const formData = new FormData();
 
+        formData.append("heading", heading);
         formData.append("name", name.trim());
-        formData.append(
-            "description",
-            description.trim()
-        );
+        
 
         if (image) {
             formData.append("image", image);
@@ -181,7 +192,7 @@ const CategoryForm = ({
                     </div>
 
 
-                    {/* Description */}
+                    {/* Heading */}
 
                     <div>
 
@@ -192,34 +203,48 @@ const CategoryForm = ({
                             font-medium
                             text-gray-700
                         ">
-                            Description
+                            Heading
                         </label>
 
-                        <textarea
-                            value={description}
+                        <select
+                            value={heading}
                             onChange={(event) =>
-                                setDescription(
-                                    event.target.value
-                                )
+                                setHeading(event.target.value)
                             }
-                            placeholder="Describe this category..."
-                            rows={4}
                             disabled={loading}
+                            required
                             className="
+                                h-11
                                 w-full
-                                resize-none
                                 rounded-xl
                                 border
                                 border-gray-300
+                                bg-white
                                 px-4
-                                py-3
                                 text-sm
                                 outline-none
                                 focus:border-gray-900
                                 focus:ring-2
                                 focus:ring-gray-100
                             "
-                        />
+                        >
+
+                            <option value="">
+                                Select heading
+                            </option>
+
+                            {CATEGORY_HEADINGS.map((item) => (
+
+                                <option
+                                    key={item}
+                                    value={item}
+                                >
+                                    {item}
+                                </option>
+
+                            ))}
+
+                        </select>
 
                     </div>
 
