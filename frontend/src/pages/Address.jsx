@@ -4,6 +4,11 @@ import {
 } from "react";
 
 import {
+    useLocation,
+    useNavigate
+} from "react-router-dom";
+
+import {
     Plus,
     Pencil,
     Trash2,
@@ -30,6 +35,10 @@ import { useAuth } from "../context/useAuth";
 const Address = () => {
 
     const { user } = useAuth();
+
+    const navigate = useNavigate();
+
+    const location = useLocation();
 
     const [addresses, setAddresses] = useState([]);
 
@@ -115,16 +124,36 @@ const Address = () => {
     // Form Success
     // =========================
 
-    const handleFormSuccess = () => {
+    const handleFormSuccess = async () => {
 
         setShowForm(false);
 
         setEditingAddress(null);
 
-        loadAddresses();
+        await loadAddresses();
+
+        const checkoutReturnUrl =
+            sessionStorage.getItem(
+                "checkoutReturnUrl"
+            );
+
+        if (checkoutReturnUrl) {
+
+            sessionStorage.removeItem(
+                "checkoutReturnUrl"
+            );
+
+            navigate(
+                checkoutReturnUrl,
+                {
+                    replace: true
+                }
+            );
+
+            return;
+        }
 
     };
-
 
     // =========================
     // Close Form

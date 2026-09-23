@@ -44,6 +44,7 @@ const createPayment = async (
 
     const payment = await Payment.create({
         orderId,
+        orderNumber: order.orderNumber,
         method,
         amount: order.totalAmount,
         status: "PENDING"
@@ -110,6 +111,294 @@ const getPaymentForAdmin = async (
 
 
     return payment;
+};
+
+
+const getAllAdminPayments = async ({
+    page = 1,
+    limit = 10,
+    search = "",
+    status,
+    method,
+    sort = "newest"
+}) => {
+
+    const currentPage =
+        Math.max(
+            Number(page) || 1,
+            1
+        );
+
+
+    const safeLimit =
+        Math.min(
+            Math.max(
+                Number(limit) || 10,
+                1
+            ),
+            50
+        );
+
+
+    // -------------------------
+    // Filter
+    // -------------------------
+
+    const filter = {};
+
+
+    if (status) {
+
+        filter.status = status;
+
+    }
+
+
+    if (method) {
+
+        filter.method = method;
+
+    }
+
+
+    // -------------------------
+    // Search
+    // -------------------------
+
+    if (search.trim()) {
+
+        const searchValue =
+            search.trim();
+
+        filter.$or = [
+
+            {
+                orderNumber: {
+                    $regex: searchValue,
+                    $options: "i"
+                }
+            },
+
+            {
+                transactionId: {
+                    $regex: searchValue,
+                    $options: "i"
+                }
+            }
+
+        ];
+
+    }
+
+
+    // -------------------------
+    // Sort
+    // -------------------------
+
+    let sortOption = {
+        createdAt: -1
+    };
+
+
+    switch (sort) {
+
+        case "oldest":
+
+            sortOption = {
+                createdAt: 1
+            };
+
+            break;
+
+
+        case "highestAmount":
+
+            sortOption = {
+                amount: -1
+            };
+
+            break;
+
+
+        case "lowestAmount":
+
+            sortOption = {
+                amount: 1
+            };
+
+            break;
+
+
+        case "newest":
+
+        default:
+
+            sortOption = {
+                createdAt: -1
+            };
+
+            break;
+
+    }
+
+
+    // -------------------------
+    // Pagination
+    // -------------------------
+
+    const skip =
+        (currentPage - 1) *
+        safeLimit;
+
+
+    // -------------------------
+    // Payments
+    // -------------------------
+
+    const [
+        payments,
+        totalPayments
+    ] = await Promise.all([
+
+        Payment.find(filter)
+            .populate(
+                "orderId",
+                "orderNumber userId totalAmount status"
+            )
+            .sort(sortOption)
+            .skip(skip)
+            .limit(safeLimit)
+            .lean(),
+
+        Payment.countDocuments(filter)
+
+    ]);
+
+
+    // -------------------------
+    // Stats
+    // -------------------------
+
+    const now = new Date();
+
+
+    const startOfToday =
+        new Date(now);
+
+    startOfToday.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const endOfToday =
+        new Date(now);
+
+    endOfToday.setHours(
+        23,
+        59,
+        59,
+        999
+    );
+
+
+    const [
+        paidToday,
+        pending,
+        failedToday,
+        refunded
+    ] = await Promise.all([
+
+        Payment.countDocuments({
+
+            status: "PAID",
+
+            paidAt: {
+                $gte: startOfToday,
+                $lte: endOfToday
+            }
+
+        }),
+
+
+        Payment.countDocuments({
+
+            status: "PENDING"
+
+        }),
+
+
+        Payment.countDocuments({
+
+            status: "FAILED",
+
+            updatedAt: {
+                $gte: startOfToday,
+                $lte: endOfToday
+            }
+
+        }),
+
+
+        Payment.countDocuments({
+
+            status: "REFUNDED"
+
+        })
+
+    ]);
+
+
+    // -------------------------
+    // Pagination
+    // -------------------------
+
+    const totalPages =
+        Math.ceil(
+            totalPayments /
+            safeLimit
+        );
+
+
+    return {
+
+        payments,
+
+        pagination: {
+
+            currentPage,
+
+            totalPages,
+
+            totalPayments,
+
+            limit: safeLimit,
+
+            hasNextPage:
+                currentPage <
+                totalPages,
+
+            hasPreviousPage:
+                currentPage > 1
+
+        },
+
+        stats: {
+
+            paidToday,
+
+            pending,
+
+            failedToday,
+
+            refunded
+
+        }
+
+    };
+
 };
 
 
@@ -403,6 +692,7 @@ module.exports = {
     createPayment,
     getMyPayment,
     getPaymentForAdmin,
+    getAllAdminPayments,
     startOnlinePayment,
     markPaymentAsPaid,
     markPaymentAsFailed,

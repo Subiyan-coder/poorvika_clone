@@ -69,14 +69,13 @@ const HeroAd = ({ ads = [] }) => {
 
     const handleAdClick = () => {
 
-        if (!currentAd.productId) {
+        if (!currentAd.productVariantId) {
             return;
         }
 
         navigate(
             `/product-variants/${currentAd.productVariantId}`
         );
-
     };
 
 

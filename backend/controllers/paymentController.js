@@ -2,6 +2,7 @@ const {
     createPayment,
     getMyPayment,
     getPaymentForAdmin,
+    getAllAdminPayments,
     startOnlinePayment,
     markPaymentAsPaid,
     markPaymentAsFailed,
@@ -15,7 +16,7 @@ const create = async (req, res, next) => {
     try {
 
         const payment = await createPayment(
-            req.user._id,
+            req.user.userId,
             req.body.orderId,
             req.body.method
         );
@@ -38,7 +39,7 @@ const getMy = async (req, res, next) => {
     try {
 
         const payment = await getMyPayment(
-            req.user._id,
+            req.user.userId,
             req.params.orderId
         );
 
@@ -74,12 +75,58 @@ const getAdmin = async (req, res, next) => {
 };
 
 
+const getAll = async (req, res, next) => {
+
+    try {
+
+        const payments =
+            await getAllAdminPayments({
+
+                page:
+                    req.query.page,
+
+                limit:
+                    req.query.limit,
+
+                search:
+                    req.query.search,
+
+                status:
+                    req.query.status,
+
+                method:
+                    req.query.method,
+
+                sort:
+                    req.query.sort
+
+            });
+
+
+        return res.status(200).json({
+
+            success: true,
+
+            data: payments
+
+        });
+
+    }
+    catch (err) {
+
+        next(err);
+
+    }
+
+};
+
+
 const startOnline = async (req, res, next) => {
 
     try {
 
         const payment = await startOnlinePayment(
-            req.user._id,
+            req.user.userId,
             req.params.orderId
         );
 
@@ -189,6 +236,7 @@ module.exports = {
     create,
     getMy,
     getAdmin,
+    getAll,
     startOnline,
     markPaid,
     markFailed,

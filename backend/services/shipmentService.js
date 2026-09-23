@@ -2,55 +2,6 @@ const Shipment = require("../models/shipment");
 const Order = require("../models/order");
 
 
-const createShipment = async ({
-    orderId,
-    carrier,
-    trackingNumber
-}) => {
-
-    const order = await Order.findById(
-        orderId
-    );
-
-    if (!order) {
-        const error = new Error(
-            "Order not found"
-        );
-        error.statusCode = 404;
-        throw error;
-    }
-
-    if (order.status === "CANCELLED") {
-        const error = new Error(
-            "Cannot create shipment for a cancelled order"
-        );
-        error.statusCode = 400;
-        throw error;
-    }
-
-    const existingShipment =
-        await Shipment.findOne({
-            orderId
-        });
-
-    if (existingShipment) {
-        const error = new Error(
-            "Shipment already exists for this order"
-        );
-        error.statusCode = 409;
-        throw error;
-    }
-
-    const shipment = await Shipment.create({
-        orderId,
-        carrier,
-        trackingNumber
-    });
-
-    return shipment;
-};
-
-
 const getShipment = async (orderId) => {
 
     const shipment = await Shipment.findOne({
@@ -72,16 +23,310 @@ const getShipment = async (orderId) => {
 };
 
 
-const getAllShipments = async () => {
+const getAllShipments = async ({
+    page = 1,
+    limit = 10,
+    search = "",
+    status,
+    sort = "newest"
+}) => {
 
-    return Shipment.find()
-        .populate(
-            "orderId",
-            "orderNumber userId status totalAmount"
-        )
-        .sort({
-            createdAt: -1
-        });
+    const currentPage =
+        Math.max(
+            Number(page) || 1,
+            1
+        );
+
+    const safeLimit =
+        Math.min(
+            Math.max(
+                Number(limit) || 10,
+                1
+            ),
+            50
+        );
+
+
+    // -------------------------
+    // Filter
+    // -------------------------
+
+    const filter = {};
+
+
+    if (status) {
+
+        filter.status = status;
+
+    }
+
+
+    // -------------------------
+    // Search
+    // -------------------------
+
+    if (search.trim()) {
+
+        const searchValue =
+            search.trim();
+
+        filter.$or = [
+
+            {
+                orderNumber: {
+                    $regex: searchValue,
+                    $options: "i"
+                }
+            },
+
+            {
+                trackingNumber: {
+                    $regex: searchValue,
+                    $options: "i"
+                }
+            },
+
+            {
+                orderId: {
+                    $in: matchingOrders.map(
+                        order => order._id
+                    )
+                }
+            }
+
+        ];
+
+    }
+
+
+    // -------------------------
+    // Sort
+    // -------------------------
+
+    let sortOption = {
+        createdAt: -1
+    };
+
+
+    switch (sort) {
+
+        case "oldest":
+
+            sortOption = {
+                createdAt: 1
+            };
+
+            break;
+
+
+        case "newest":
+
+        default:
+
+            sortOption = {
+                createdAt: -1
+            };
+
+            break;
+
+    }
+
+
+    // -------------------------
+    // Pagination
+    // -------------------------
+
+    const skip =
+        (currentPage - 1) *
+        safeLimit;
+
+
+    // -------------------------
+    // Date Ranges
+    // -------------------------
+
+    const now = new Date();
+
+
+    const startOfToday =
+        new Date(now);
+
+    startOfToday.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const startOfWeek =
+        new Date(now);
+
+    const day =
+        startOfWeek.getDay();
+
+    const daysFromMonday =
+        day === 0
+            ? 6
+            : day - 1;
+
+    startOfWeek.setDate(
+        startOfWeek.getDate() -
+        daysFromMonday
+    );
+
+    startOfWeek.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const sevenDaysAgo =
+        new Date(now);
+
+    sevenDaysAgo.setDate(
+        sevenDaysAgo.getDate() -
+        7
+    );
+
+
+    // -------------------------
+    // Shipments
+    // -------------------------
+
+    const [
+        shipments,
+        totalShipments,
+
+        pendingToday,
+        packedCurrent,
+        packedSevenDays,
+        shippedToday,
+        shippedThisWeek,
+        failedToday
+
+    ] = await Promise.all([
+
+        Shipment.find(filter)
+            .populate(
+                "orderId",
+                "orderNumber userId status totalAmount"
+            )
+            .sort(sortOption)
+            .skip(skip)
+            .limit(safeLimit)
+            .lean(),
+
+        Shipment.countDocuments(filter),
+
+
+        // Pending today
+        Shipment.countDocuments({
+            status: "PENDING",
+            createdAt: {
+                $gte: startOfToday,
+                $lte: now
+            }
+        }),
+
+
+        // Currently packed
+        Shipment.countDocuments({
+            status: "PACKED"
+        }),
+
+
+        // Packed for 7+ days
+        Shipment.countDocuments({
+            status: "PACKED",
+            updatedAt: {
+                $lte: sevenDaysAgo
+            }
+        }),
+
+
+        // Shipped today
+        Shipment.countDocuments({
+            status: "SHIPPED",
+            updatedAt: {
+                $gte: startOfToday,
+                $lte: now
+            }
+        }),
+
+
+        // Shipped this week
+        Shipment.countDocuments({
+            status: "SHIPPED",
+            updatedAt: {
+                $gte: startOfWeek,
+                $lte: now
+            }
+        }),
+
+
+        // Failed today
+        Shipment.countDocuments({
+            status: "FAILED",
+            updatedAt: {
+                $gte: startOfToday,
+                $lte: now
+            }
+        })
+
+    ]);
+
+
+    const totalPages =
+        Math.ceil(
+            totalShipments /
+            safeLimit
+        );
+
+
+    return {
+
+        shipments,
+
+        pagination: {
+
+            currentPage,
+
+            totalPages,
+
+            totalShipments,
+
+            limit: safeLimit,
+
+            hasNextPage:
+                currentPage <
+                totalPages,
+
+            hasPreviousPage:
+                currentPage > 1
+
+        },
+
+        stats: {
+
+            pendingToday,
+
+            packedCurrent,
+
+            packedSevenDays,
+
+            shippedToday,
+
+            shippedThisWeek,
+
+            failedToday
+
+        }
+
+    };
+
 };
 
 const updateShipment = async (
@@ -93,26 +338,48 @@ const updateShipment = async (
     }
 ) => {
 
-    const shipment = await Shipment.findById(
-        shipmentId
-    );
+    const shipment =
+        await Shipment.findById(
+            shipmentId
+        );
 
     if (!shipment) {
         const error = new Error(
             "Shipment not found"
         );
+
         error.statusCode = 404;
+
         throw error;
     }
 
 
     const allowedTransitions = {
-        PENDING: ["PACKED", "FAILED"],
-        PACKED: ["SHIPPED", "FAILED"],
-        SHIPPED: ["OUT_FOR_DELIVERY", "FAILED"],
-        OUT_FOR_DELIVERY: ["DELIVERED", "FAILED"],
+
+        PENDING: [
+            "PACKED",
+            "FAILED"
+        ],
+
+        PACKED: [
+            "SHIPPED",
+            "FAILED"
+        ],
+
+        SHIPPED: [
+            "OUT_FOR_DELIVERY",
+            "FAILED"
+        ],
+
+        OUT_FOR_DELIVERY: [
+            "DELIVERED",
+            "FAILED"
+        ],
+
         DELIVERED: [],
+
         FAILED: []
+
     };
 
 
@@ -130,10 +397,13 @@ const updateShipment = async (
             !allowed ||
             !allowed.includes(status)
         ) {
+
             const error = new Error(
                 `Cannot change shipment status from ${shipment.status} to ${status}`
             );
+
             error.statusCode = 400;
+
             throw error;
         }
 
@@ -141,24 +411,37 @@ const updateShipment = async (
 
 
         if (status === "SHIPPED") {
-            shipment.shippedAt = new Date();
+
+            shipment.shippedAt =
+                new Date();
+
         }
 
 
         if (status === "DELIVERED") {
-            shipment.deliveredAt = new Date();
+
+            shipment.deliveredAt =
+                new Date();
+
         }
+
     }
 
 
+    // Carrier can be added/changed independently
     if (carrier !== undefined) {
+
         shipment.carrier = carrier;
+
     }
 
 
+    // Tracking number can be added/changed independently
     if (trackingNumber !== undefined) {
+
         shipment.trackingNumber =
             trackingNumber;
+
     }
 
 
@@ -166,6 +449,7 @@ const updateShipment = async (
 
     return shipment;
 };
+
 
 const calculateShippingCharge = async ({
     userId,
@@ -199,7 +483,6 @@ const calculateShippingCharge = async ({
 
 
 module.exports = {
-    createShipment,
     getShipment,
     getAllShipments,
     updateShipment,

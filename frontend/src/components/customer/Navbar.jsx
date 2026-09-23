@@ -425,7 +425,7 @@ const Navbar = () => {
                                         onClick={() => {
                                             setAccountOpen(false);
                                             navigate(
-                                                "/account/orders"
+                                                "/my-orders"
                                             );
                                         }}
                                         className="

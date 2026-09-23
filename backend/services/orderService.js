@@ -9,6 +9,7 @@ const Inventory = require("../models/inventory");
 const InventoryTransaction = require("../models/inventoryTransaction");
 const Coupon = require("../models/coupon");
 const CouponUsage = require("../models/couponUsage");
+const Shipment = require("../models/shipment");
 
 const generateOrderNumber = () => {
 
@@ -32,6 +33,7 @@ const getShippingAddress = async (
     }).session(session);
 
     if (!address) {
+
         const error = new Error(
             "Shipping address not found"
         );
@@ -143,6 +145,13 @@ const buildOrderItems = async (
             productName:
                 product.name,
 
+            productImage: variant.images?.[0]
+                ? {
+                    url: variant.images[0].url,
+                    publicId: variant.images[0].publicId
+                }
+                : null,
+
             sku:
                 variant.sku,
 
@@ -178,50 +187,71 @@ const reserveInventory = async (
 
     for (const item of orderItems) {
 
-        const inventory = await Inventory.findOneAndUpdate(
-            {
-                productVariantId: item.productVariantId,
-                isAvailable: true,
-                $expr: {
-                    $gte: [
-                        {
-                            $subtract: [
-                                "$quantity",
-                                "$reservedQuantity"
-                            ]
-                        },
-                        item.quantity
-                    ]
+        const inventory =
+            await Inventory.findOneAndUpdate(
+                {
+                    productVariantId:
+                        item.productVariantId,
+
+                    isAvailable: true,
+
+                    $expr: {
+                        $gte: [
+                            {
+                                $subtract: [
+                                    "$quantity",
+                                    "$reservedQuantity"
+                                ]
+                            },
+                            item.quantity
+                        ]
+                    }
+                },
+                {
+                    $inc: {
+                        reservedQuantity:
+                            item.quantity
+                    }
+                },
+                {
+                    new: true,
+                    session
                 }
-            },
-            {
-                $inc: {
-                    reservedQuantity: item.quantity
-                }
-            },
-            {
-                new: true,
-                session
-            }
-        );
+            );
+
 
         if (!inventory) {
+
             const error = new Error(
                 `Insufficient stock for ${item.sku}`
             );
+
             error.statusCode = 400;
+
             throw error;
         }
 
+
         await InventoryTransaction.create(
-            [{
-                performedBy: user.id,
-                productVariantId: item.productVariantId,
-                type: "RESERVATION",
-                quantity: item.quantity,
-                referenceId: orderId,
-                note: "Inventory reserved for order"
-            }],
+            [
+                {
+                    performedBy: userId,
+
+                    productVariantId:
+                        item.productVariantId,
+
+                    type: "RESERVATION",
+
+                    quantity:
+                        item.quantity,
+
+                    referenceId:
+                        orderId,
+
+                    note:
+                        "Inventory reserved for order"
+                }
+            ],
             { session }
         );
     }
@@ -243,11 +273,7 @@ const createOrder = async ({
     );
 
 
-    const shippingCharge =
-        await calculateShippingCharge({
-            userId,
-            subtotal
-        });
+    const shippingCharge = 0;
 
     let couponResult = null;
     let discountAmount = 0;
@@ -371,9 +397,21 @@ const createOrder = async ({
 
 
     await reserveInventory(
+        userId,
         orderItems,
         order._id,
         session
+    );
+
+    await Shipment.create(
+        [{
+            orderId: order._id,
+            orderNumber: order.orderNumber,
+            status: "PENDING"
+        }],
+        {
+            session
+        }
     );
 
 
@@ -619,12 +657,262 @@ const getOrder = async (
 };
 
 
-const getAllOrders = async () => {
+const getAllOrders = async ({
+    page = 1,
+    limit = 10,
+    search = "",
+    status,
+    sort = "newest"
+}) => {
 
-    return Order.find()
-        .sort({
-            createdAt: -1
-        });
+    const currentPage =
+        Math.max(
+            Number(page) || 1,
+            1
+        );
+
+    const safeLimit =
+        Math.min(
+            Math.max(
+                Number(limit) || 10,
+                1
+            ),
+            50
+        );
+
+
+    // -------------------------
+    // Filter
+    // -------------------------
+
+    const filter = {};
+
+
+    if (search.trim()) {
+
+        filter.orderNumber = {
+            $regex: search.trim(),
+            $options: "i"
+        };
+
+    }
+
+
+    if (status) {
+
+        filter.status = status;
+
+    }
+
+
+    // -------------------------
+    // Sort
+    // -------------------------
+
+    let sortOption = {
+        createdAt: -1
+    };
+
+
+    switch (sort) {
+
+        case "oldest":
+
+            sortOption = {
+                createdAt: 1
+            };
+
+            break;
+
+
+        case "highest":
+
+            sortOption = {
+                totalAmount: -1
+            };
+
+            break;
+
+
+        case "lowest":
+
+            sortOption = {
+                totalAmount: 1
+            };
+
+            break;
+
+
+        case "newest":
+
+        default:
+
+            sortOption = {
+                createdAt: -1
+            };
+
+            break;
+
+    }
+
+
+    // -------------------------
+    // Date ranges
+    // -------------------------
+
+    const now = new Date();
+
+
+    const startOfToday = new Date(now);
+
+    startOfToday.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
+
+    const startOfWeek = new Date(
+        startOfToday
+    );
+
+    const day =
+        startOfWeek.getDay();
+
+    const daysFromMonday =
+        day === 0
+            ? 6
+            : day - 1;
+
+    startOfWeek.setDate(
+        startOfWeek.getDate() -
+        daysFromMonday
+    );
+
+
+    const startOfMonth = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1
+    );
+
+
+    const startOfYear = new Date(
+        now.getFullYear(),
+        0,
+        1
+    );
+
+
+    // -------------------------
+    // Pagination
+    // -------------------------
+
+    const skip =
+        (currentPage - 1) *
+        safeLimit;
+
+
+    // -------------------------
+    // Queries
+    // -------------------------
+
+    const [
+        orders,
+        totalOrders,
+        today,
+        week,
+        month,
+        year,
+        pending
+    ] = await Promise.all([
+
+        Order.find(filter)
+            .sort(sortOption)
+            .skip(skip)
+            .limit(safeLimit)
+            .lean(),
+
+        Order.countDocuments(filter),
+
+        Order.countDocuments({
+            createdAt: {
+                $gte: startOfToday
+            }
+        }),
+
+        Order.countDocuments({
+            createdAt: {
+                $gte: startOfWeek
+            }
+        }),
+
+        Order.countDocuments({
+            createdAt: {
+                $gte: startOfMonth
+            }
+        }),
+
+        Order.countDocuments({
+            createdAt: {
+                $gte: startOfYear
+            }
+        }),
+
+        Order.countDocuments({
+            status: "PENDING"
+        })
+
+    ]);
+
+
+    const totalPages =
+        Math.ceil(
+            totalOrders /
+            safeLimit
+        );
+
+
+    return {
+
+        orders,
+
+        pagination: {
+
+            currentPage,
+
+            totalPages,
+
+            totalOrders,
+
+            limit: safeLimit,
+
+            hasNextPage:
+                currentPage <
+                totalPages,
+
+            hasPreviousPage:
+                currentPage > 1
+
+        },
+
+        stats: {
+
+            today,
+
+            week,
+
+            month,
+
+            year,
+
+            pending
+
+        }
+
+    };
+
 };
 
 

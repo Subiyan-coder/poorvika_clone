@@ -9,7 +9,11 @@ const getCart = async (userId) => {
         userId
     }).populate({
         path: "items.productVariant",
-        select: "productId sku price discountPrice attributes images isActive"
+        select: "productId sku price discountPrice attributes images isActive",
+        populate: {
+            path: "productId",
+            select: "name"
+        }
     });
 
     if (!cart) {
@@ -79,7 +83,7 @@ const addItem = async (
                 {
                     productVariant: productVariantId,
                     quantity,
-                    selected: false
+                    selected: true
                 }
             ]
         });
@@ -114,7 +118,7 @@ const addItem = async (
         cart.items.push({
             productVariant: productVariantId,
             quantity,
-            selected: false
+            selected: true
         });
 
     }

@@ -9,6 +9,12 @@ const shipmentSchema = mongoose.Schema(
             unique : true
         },
 
+        orderNumber: {
+            type: String,
+            trim: true,
+            required: true
+        },
+
         status : {
             type : String,
             enum : [

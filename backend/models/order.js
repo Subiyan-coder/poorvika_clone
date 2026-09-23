@@ -30,6 +30,17 @@ const orderSchema = new mongoose.Schema(
                     trim: true
                 },
 
+                productImage: {
+                    url: {
+                        type: String,
+                        trim: true
+                    },
+                    publicId: {
+                        type: String,
+                        trim: true
+                    }
+                },
+
                 sku: {
                     type: String,
                     required: true,

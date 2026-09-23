@@ -15,7 +15,7 @@ const createFromCart = async (req, res, next) => {
     try {
 
         const order = await createOrderFromCart(
-            req.user.id,
+            req.user.userId,
             req.body.addressId
         );
 
@@ -42,7 +42,7 @@ const createDirect = async (req, res, next) => {
     try {
 
         const order = await createDirectOrder(
-            req.user.id,
+            req.user.userId,
             req.body.productVariantId,
             req.body.quantity,
             req.body.addressId
@@ -71,7 +71,7 @@ const getMy = async (req, res, next) => {
     try {
 
         const orders = await getMyOrders(
-            req.user.id
+            req.user.userId
         );
 
         return res.status(200).json({
@@ -92,7 +92,7 @@ const getOne = async (req, res, next) => {
     try {
 
         const order = await getOrder(
-            req.user.id,
+            req.user.userId,
             req.params.orderId
         );
 
@@ -113,17 +113,40 @@ const getAll = async (req, res, next) => {
 
     try {
 
-        const orders = await getAllOrders();
+        const result =
+            await getAllOrders({
+
+                page:
+                    req.query.page,
+
+                limit:
+                    req.query.limit,
+
+                search:
+                    req.query.search,
+
+                status:
+                    req.query.status,
+
+                sort:
+                    req.query.sort
+
+            });
+
 
         return res.status(200).json({
+
             success: true,
-            data: orders
+
+            data: result
+
         });
 
     }
     catch (err) {
 
         next(err);
+
     }
 };
 
@@ -156,7 +179,7 @@ const cancel = async (req, res, next) => {
     try {
 
         const order = await cancelOrder(
-            req.user.id,
+            req.user.userId,
             req.params.orderId,
             req.body.reason
         );

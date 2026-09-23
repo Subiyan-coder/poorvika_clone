@@ -13,7 +13,17 @@ import VerifyOtp from "../pages/VerifyOtp";
 import RegisterDetails from "../pages/RegisterDetails";
 import LoginOtp from "../pages/LoginOtp";
 
+import ProductDetails from "../pages/ProductDetails";
+import ProductVariant from "../pages/PraductVariant";
+
 import ProfileRoutes from "./ProfileRoutes";
+import Cart from "../pages/Cart";
+
+import Order from "../pages/Order";
+import Payment from "../pages/Payment";
+import MyOrders from "../pages/MyOrders";
+import OrderDetails from "../pages/OrderDetails";
+
 
 
 const CustomerRoutes = () => {
@@ -33,6 +43,44 @@ const CustomerRoutes = () => {
                     element={<Home />}
                 />
 
+                <Route
+                    path="products/:productId"
+                    element={<ProductDetails />}
+                />
+
+                <Route
+                    path="product-variants/:variantId"
+                    element={<ProductVariant />}
+                />
+
+                <Route
+                    path="cart"
+                    element={<Cart />}
+                />
+
+                {/* Order */}
+
+                <Route
+                    path="order"
+                    element={<Order />}
+                />
+
+                <Route
+                    path="payment"
+                    element={<Payment />}
+                />
+
+                <Route
+                    path="my-orders"
+                    element={
+                        <MyOrders />
+                    }
+                />
+
+                <Route
+                    path="my-orders/:orderId"
+                    element={<OrderDetails />}
+                />
 
                 {/* =========================
                     PROFILE

@@ -14,11 +14,13 @@ const ProductVariantRoute = require("./productVariantRoute");
 const inventoryRoute = require("./inventoryRoute");
 const inventoryTransactionRoutes = require("./inventoryTransactionRoutes");
 
+const cartRoute = require("./cartRoute");
 const orderRoute = require("./orderRoute");
 const couponRoute = require("./couponRoute");
 const shipmentRoute = require("./shipmentRoute");
 const returnRoute =  require("./returnRoute");
 const paymentRoute = require("./paymentRoute");
+
 
 const reviewRoute = require("./reviewRoute");
 
@@ -91,6 +93,11 @@ router.use(
 )
 
 // order routes
+
+router.use(
+    "/cart",
+    cartRoute
+);
 
 router.use(
     "/order",

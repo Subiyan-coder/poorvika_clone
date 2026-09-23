@@ -9,6 +9,12 @@ const paymentSchema = new mongoose.Schema(
             unique : true
         },
 
+        orderNumber: {
+            type: String,
+            trim: true,
+            required: true
+        },
+
         method : {
             type : String,
             enum : [
@@ -37,6 +43,12 @@ const paymentSchema = new mongoose.Schema(
             type : Number,
             min : 0,
             required : true
+        },
+
+        refundedAmount: {
+            type: Number,
+            min: 0,
+            default: 0
         },
 
         transactionId : {

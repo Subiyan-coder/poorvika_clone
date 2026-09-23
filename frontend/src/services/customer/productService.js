@@ -20,3 +20,15 @@ export const getCustomerProducts = async ({
 
     return response.data;
 };
+
+
+export const getCustomerProduct = async (
+    productId
+) => {
+
+    const response = await api.get(
+        `/products/${productId}`
+    );
+
+    return response.data;
+};

@@ -101,6 +101,19 @@ const PromoAdCarousel = ({ ads = [] }) => {
     };
 
 
+    const handleAdClick = (ad) => {
+
+        if (ad.productVariantId) {
+
+            navigate(
+                `/product-variants/${ad.productVariantId}`
+            );
+
+        }
+
+    };
+
+
     return (
         <section className="relative w-full">
 
@@ -112,10 +125,10 @@ const PromoAdCarousel = ({ ads = [] }) => {
                     left-2
                     top-1/2
                     z-10
-                    -translate-y-1/2
                     flex
                     h-9
                     w-9
+                    -translate-y-1/2
                     items-center
                     justify-center
                     rounded-full
@@ -145,17 +158,9 @@ const PromoAdCarousel = ({ ads = [] }) => {
                     <button
                         key={ad._id || index}
                         type="button"
-                        onClick={() => {
-
-                            if (ad.productId) {
-
-                                navigate(
-                                    `/product-variants/${ad.productVariantId}`
-                                );
-
-                            }
-
-                        }}
+                        onClick={() =>
+                            handleAdClick(ad)
+                        }
                         className="
                             min-w-[85%]
                             overflow-hidden
@@ -195,10 +200,10 @@ const PromoAdCarousel = ({ ads = [] }) => {
                     right-2
                     top-1/2
                     z-10
-                    -translate-y-1/2
                     flex
                     h-9
                     w-9
+                    -translate-y-1/2
                     items-center
                     justify-center
                     rounded-full

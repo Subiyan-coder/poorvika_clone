@@ -1,18 +1,10 @@
 const express = require("express");
 
 const {
-    create,
-    getOne,
     getAll,
+    getOne,
     update
 } = require("../controllers/shipmentController");
-
-const {
-    createShipmentRules,
-    updateShipmentRules
-} = require("../middleware/validationRules/shipmentRules");
-
-const { validate } = require("../middleware/validate");
 
 const {
     authenticate,
@@ -22,37 +14,26 @@ const {
 const router = express.Router();
 
 
-// Admin
-
 router.get(
-    "/",
+    "/admin/all",
     authenticate,
     authorize("ADMIN"),
     getAll
 );
 
+
 router.get(
-    "/:orderId",
+    "/admin/:orderId",
     authenticate,
     authorize("ADMIN"),
     getOne
 );
 
-router.post(
-    "/",
-    authenticate,
-    authorize("ADMIN"),
-    createShipmentRules,
-    validate,
-    create
-);
 
 router.patch(
-    "/:shipmentId",
+    "/admin/:shipmentId",
     authenticate,
     authorize("ADMIN"),
-    updateShipmentRules,
-    validate,
     update
 );
 

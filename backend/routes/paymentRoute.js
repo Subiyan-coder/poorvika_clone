@@ -4,6 +4,7 @@ const {
     create,
     getMy,
     getAdmin,
+    getAll,
     startOnline,
     markPaid,
     markFailed,
@@ -63,6 +64,13 @@ router.post(
 
 
 // Admin
+
+router.get(
+    "/admin/all",
+    authenticate,
+    authorize("ADMIN"),
+    getAll
+);
 
 router.get(
     "/admin/:orderId",
